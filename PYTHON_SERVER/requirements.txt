@@ -1,0 +1,35 @@
+#psycopg2-binary==2.9.1
+SQLAlchemy~=2.0.35
+alembic~=1.13.3
+scrapy==2.11.2
+protobuf~=5.28.2
+google-auth-oauthlib~=1.2.1
+google-api-python-client~=2.147.0
+selenium~=4.26.1
+requests~=2.32.3
+pillow~=11.0.0
+pyasn1~=0.6.1
+pandas~=2.2.3
+typing~=3.7.4.3
+python-dotenv~=1.0.1
+fastapi>=0.104.1
+uvicorn>=0.24.0
+python-multipart>=0.0.6
+pydantic~=2.10.6
+psycopg2-binary~=2.9.9
+beautifulsoup4~=4.13.3
+cloudscraper~=1.2.71
+undetected-chromedriver~=3.5.5
+schedule==1.2.0
+celery~=5.5.0
+# ⚠️ KALDIRILDI: sentence-transformers (1-2GB, şu anda kullanılmıyor)
+# sentence-transformers~=3.4.1
+# ⚠️ KALDIRILDI: scikit-learn (sentence-transformers için gerekliydi)
+# scikit-learn~=1.6.1
+w3lib~=2.2.1
+six~=1.16.0
+pika>=1.3.2
+twisted~=24.7.0
+playwright>=1.48.0
+lxml>=5.0.0  # XPath desteği için (cloudscraper ile birlikte)
+pytz>=2024.1  # Türkiye saati (UTC+3) için timezone desteği

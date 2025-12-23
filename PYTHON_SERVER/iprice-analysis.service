@@ -1,0 +1,49 @@
+# Systemd Service for iPriceNew Price Analysis Service
+# Dosya yolu: /etc/systemd/system/iprice-analysis.service
+
+[Unit]
+Description=iPriceNew Price Analysis Service
+Documentation=https://github.com/iprice/price_analysis_service
+After=docker.service
+Requires=docker.service
+After=network-online.target
+Wants=network-online.target
+
+[Service]
+Type=oneshot
+RemainAfterExit=yes
+WorkingDirectory=/home/iprice/price_analysis_service
+User=iprice
+Group=docker
+
+# Docker Compose ile başlatma
+ExecStart=/usr/local/bin/docker-compose up -d
+
+# Durdurma
+ExecStop=/usr/local/bin/docker-compose down
+
+# Yeniden başlatma
+ExecReload=/usr/local/bin/docker-compose restart
+
+# Restart policy
+Restart=on-failure
+RestartSec=10s
+
+# Timeout ayarları
+TimeoutStartSec=300
+TimeoutStopSec=120
+
+# Environment variables
+Environment="COMPOSE_PROJECT_NAME=price_analysis_service"
+EnvironmentFile=/home/iprice/price_analysis_service/.env
+
+# Güvenlik
+NoNewPrivileges=false
+
+# Kaynak limitleri
+LimitNOFILE=65536
+LimitNPROC=4096
+
+[Install]
+WantedBy=multi-user.target
+

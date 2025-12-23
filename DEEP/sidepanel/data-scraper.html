@@ -1,0 +1,787 @@
+<!DOCTYPE html>
+<html lang="tr">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Data Scraper</title>
+  <link rel="stylesheet" href="tailwind.css">
+</head>
+<body class="bg-gray-50">
+  <!-- Header -->
+  <div class="sticky top-0 z-50 bg-white border-b border-gray-200">
+    <div class="flex items-center justify-between px-4 py-3">
+      <div class="flex items-center space-x-3">
+        <button id="back-to-home" class="flex items-center space-x-1.5 text-sm font-medium text-gray-700 hover:text-gray-900 transition-colors">
+          <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 19l-7-7 7-7"></path>
+          </svg>
+          <span>Ana Menü</span>
+        </button>
+      </div>
+      <h1 class="text-lg font-semibold text-gray-900">Web Öğe Seçici</h1>
+      <div class="w-20"></div>
+    </div>
+    
+    <!-- Tabs -->
+    <div class="flex border-b border-gray-200 overflow-x-auto">
+      <button class="tab-btn active px-4 py-3 text-sm font-medium text-gray-600 hover:text-gray-900 border-b-2 border-transparent hover:border-gray-300 transition-colors whitespace-nowrap" data-tab="picker">
+        Öğe Seç
+      </button>
+      <button class="tab-btn px-4 py-3 text-sm font-medium text-gray-600 hover:text-gray-900 border-b-2 border-transparent hover:border-gray-300 transition-colors whitespace-nowrap" data-tab="labels">
+        Etiketler
+      </button>
+      <button class="tab-btn px-4 py-3 text-sm font-medium text-gray-600 hover:text-gray-900 border-b-2 border-transparent hover:border-gray-300 transition-colors whitespace-nowrap" data-tab="selectors">
+        Kayıtlı Seçiciler
+      </button>
+      <button class="tab-btn px-4 py-3 text-sm font-medium text-gray-600 hover:text-gray-900 border-b-2 border-transparent hover:border-gray-300 transition-colors whitespace-nowrap" data-tab="scanner">
+        URL Tarama
+      </button>
+      <button class="tab-btn px-4 py-3 text-sm font-medium text-gray-600 hover:text-gray-900 border-b-2 border-transparent hover:border-gray-300 transition-colors whitespace-nowrap" data-tab="results">
+        Sonuçlar
+      </button>
+      <button class="tab-btn px-4 py-3 text-sm font-medium text-gray-600 hover:text-gray-900 border-b-2 border-transparent hover:border-gray-300 transition-colors whitespace-nowrap" data-tab="settings">
+        Ayarlar
+      </button>
+    </div>
+  </div>
+
+  <!-- Tab Contents -->
+  <div class="max-w-4xl mx-auto">
+    <!-- Öğe Seç Sekmesi -->
+    <div class="tab-content active p-6" id="picker-tab">
+      <div class="space-y-6">
+        <div>
+          <h2 class="text-xl font-semibold text-gray-900 mb-2">Öğe Seçme Modu</h2>
+          <p class="text-sm text-gray-600 leading-relaxed">
+            Sayfadaki öğeleri seçmek için aşağıdaki butona tıklayın. Seçim modu aktif olduğunda sayfadaki herhangi bir öğeye tıklayarak seçim yapabilirsiniz.
+          </p>
+        </div>
+        
+        <div class="bg-blue-50 border border-blue-200 rounded-lg p-4">
+          <div class="flex items-start space-x-2">
+            <svg class="w-5 h-5 text-blue-600 mt-0.5 flex-shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"></path>
+            </svg>
+            <p class="text-sm text-blue-800">
+              <strong>İpucu:</strong> Öğe seçildikten sonra parent öğeleri arasından seçim yapabilirsiniz.
+            </p>
+          </div>
+        </div>
+
+        <div class="flex items-center space-x-3">
+          <button id="start-picker" class="inline-flex items-center space-x-2 bg-gray-900 hover:bg-gray-800 text-white font-medium px-5 py-2.5 rounded-lg transition-all duration-200 shadow-sm hover:shadow-md active:scale-[0.98]">
+            <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 15l-2 5L9 9l11 4-5 2zm0 0l5 5M7.188 2.239l.777 2.897M5.136 7.965l-2.898-.777M13.95 4.05l-2.122 2.122m-5.657 5.656l-2.12 2.122"></path>
+            </svg>
+            <span>Öğe Seç Başlat</span>
+          </button>
+          <button id="stop-picker" class="hidden inline-flex items-center space-x-2 bg-white hover:bg-gray-50 text-gray-700 font-medium px-5 py-2.5 rounded-lg border border-gray-300 transition-all duration-200 active:scale-[0.98]">
+            <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"></path>
+            </svg>
+            <span>Seçimi Durdur</span>
+          </button>
+        </div>
+
+        <div id="picker-status" class="status-message hidden"></div>
+        
+        <div id="selected-element-info" class="hidden">
+          <!-- Header Card -->
+          <div class="bg-gradient-to-r from-gray-900 to-gray-800 rounded-t-xl p-6" style="background: linear-gradient(to right, #111827, #1f2937);">
+            <div class="flex items-center justify-between">
+              <div class="flex items-center space-x-3">
+                <div class="w-12 h-12 rounded-lg flex items-center justify-center" style="background-color: rgba(255,255,255,0.1);">
+                  <svg class="w-6 h-6" fill="none" stroke="#ffffff" viewBox="0 0 24 24" style="color: #ffffff;">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M7 21a4 4 0 01-4-4V5a2 2 0 012-2h4a2 2 0 012 2v12a4 4 0 01-4 4zm0 0h12a2 2 0 002-2v-4a2 2 0 00-2-2h-2.343M11 7.343l1.657-1.657a2 2 0 012.828 0l2.829 2.829a2 2 0 010 2.828l-8.486 8.485M7 17h.01"></path>
+                  </svg>
+                </div>
+                <div>
+                  <h3 class="text-xl font-bold" style="color: #ffffff;">Seçilen Öğe Bilgileri</h3>
+                  <p class="text-sm mt-0.5" style="color: #d1d5db;">Öğe detaylarını görüntüleyin ve yapılandırın</p>
+                </div>
+              </div>
+            </div>
+          </div>
+
+          <!-- Content Card -->
+          <div class="bg-white border-x border-b border-gray-200 rounded-b-xl p-6 space-y-6">
+            <!-- Öğe Seviyesi ve Selector Tipi -->
+            <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+              <div class="space-y-2">
+                <label class="flex items-center space-x-2 text-sm font-semibold text-gray-700">
+                  <svg class="w-4 h-4 text-gray-500" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 6h16M4 12h16M4 18h16"></path>
+                  </svg>
+                  <span>Öğe Seviyesi</span>
+                </label>
+                <select id="element-level-select" class="w-full px-4 py-3 border-2 border-gray-200 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-gray-900 focus:border-gray-900 bg-white transition-all">
+                  <option value="">Yükleniyor...</option>
+                </select>
+              </div>
+
+              <div class="space-y-2">
+                <label class="flex items-center space-x-2 text-sm font-semibold text-gray-700">
+                  <svg class="w-4 h-4 text-gray-500" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M7 21a4 4 0 01-4-4V5a2 2 0 012-2h4a2 2 0 012 2v12a4 4 0 01-4 4zm0 0h12a2 2 0 002-2v-4a2 2 0 00-2-2h-2.343M11 7.343l1.657-1.657a2 2 0 012.828 0l2.829 2.829a2 2 0 010 2.828l-8.486 8.485M7 17h.01"></path>
+                  </svg>
+                  <span>Selector Tipi</span>
+                </label>
+                <div class="flex items-center space-x-4 bg-gray-50 p-2 rounded-lg border-2 border-gray-200">
+                  <label class="flex-1 flex items-center justify-center space-x-2 cursor-pointer p-2 rounded-md transition-all hover:bg-white border-2 border-transparent hover:border-gray-300 selector-type-option" data-type="class">
+                    <input type="radio" name="selector-type" value="class" id="selector-type-class" checked class="w-4 h-4 text-gray-900 focus:ring-gray-900">
+                    <span class="text-sm font-medium text-gray-700">CSS Class</span>
+                  </label>
+                  <label class="flex-1 flex items-center justify-center space-x-2 cursor-pointer p-2 rounded-md transition-all hover:bg-white border-2 border-transparent hover:border-gray-300 selector-type-option" data-type="xpath">
+                    <input type="radio" name="selector-type" value="xpath" id="selector-type-xpath" class="w-4 h-4 text-gray-900 focus:ring-gray-900">
+                    <span class="text-sm font-medium text-gray-700">XPath</span>
+                  </label>
+                </div>
+              </div>
+            </div>
+
+            <!-- Selector Card -->
+            <div class="bg-gray-50 rounded-xl p-5 border-2 border-gray-200">
+              <div class="flex items-center justify-between mb-3">
+                <label class="flex items-center space-x-2 text-sm font-semibold text-gray-700">
+                  <svg class="w-4 h-4 text-gray-500" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M10 20l4-16m4 4l4 4-4 4M6 16l-4-4 4-4"></path>
+                  </svg>
+                  <span>Selector</span>
+                </label>
+                <button id="copy-selector" class="inline-flex items-center space-x-1.5 text-xs font-medium text-gray-600 hover:text-gray-900 px-2 py-1 rounded hover:bg-white transition-colors">
+                  <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 16H6a2 2 0 01-2-2V6a2 2 0 012-2h8a2 2 0 012 2v2m-6 12h8a2 2 0 002-2v-8a2 2 0 00-2-2h-8a2 2 0 00-2 2v8a2 2 0 002 2z"></path>
+                  </svg>
+                  <span>Kopyala</span>
+                </button>
+              </div>
+              <div class="bg-white rounded-lg border-2 border-gray-200 p-4">
+                <input type="text" id="element-selector" placeholder="Selector'ı buraya yazın veya düzenleyin..." class="w-full text-sm bg-transparent text-gray-900 font-mono focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500">
+              </div>
+            </div>
+
+            <!-- Preview Card -->
+            <div class="bg-gradient-to-br from-blue-50 to-indigo-50 rounded-xl p-5 border-2 border-blue-200">
+              <label class="flex items-center space-x-2 text-sm font-semibold text-gray-700 mb-3">
+                <svg class="w-4 h-4 text-blue-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 12a3 3 0 11-6 0 3 3 0 016 0z"></path>
+                  <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M2.458 12C3.732 7.943 7.523 5 12 5c4.478 0 8.268 2.943 9.542 7-1.274 4.057-5.064 7-9.542 7-4.477 0-8.268-2.943-9.542-7z"></path>
+                </svg>
+                <span>Öğe İçeriği Önizleme</span>
+              </label>
+              <div id="element-preview" class="bg-white rounded-lg border-2 border-blue-200 p-4 text-xs text-gray-900 font-mono min-h-[80px] max-h-[200px] overflow-y-auto shadow-sm"></div>
+            </div>
+
+            <!-- Label ve Domain -->
+            <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+              <div class="space-y-2">
+                <label class="flex items-center space-x-2 text-sm font-semibold text-gray-700">
+                  <svg class="w-4 h-4 text-gray-500" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M7 7h.01M7 3h5c.512 0 1.024.195 1.414.586l7 7a2 2 0 010 2.828l-7 7a2 2 0 01-2.828 0l-7-7A1.994 1.994 0 013 12V7a4 4 0 014-4z"></path>
+                  </svg>
+                  <span>Etiket (Label)</span>
+                </label>
+                <select id="element-label" class="w-full px-4 py-3 border-2 border-gray-200 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-gray-900 focus:border-gray-900 transition-all bg-white">
+                  <option value="">Etiket seçin...</option>
+                </select>
+                <p class="text-xs text-gray-500 mt-1.5 flex items-center space-x-1">
+                  <svg class="flex-shrink-0" style="width: 12px; height: 12px;" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"></path>
+                  </svg>
+                  <span>Etiketler sekmesinden yeni etiket ekleyebilirsiniz</span>
+                </p>
+              </div>
+
+              <div class="space-y-2">
+                <label class="flex items-center space-x-2 text-sm font-semibold text-gray-700">
+                  <svg class="w-4 h-4 text-gray-500" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M21 12a9 9 0 01-9 9m9-9a9 9 0 00-9-9m9 9H3m9 9a9 9 0 01-9-9m9 9c1.657 0 3-4.03 3-9s-1.343-9-3-9m0 18c-1.657 0-3-4.03-3-9s1.343-9 3-9m-9 9a9 9 0 019-9"></path>
+                  </svg>
+                  <span>Domain</span>
+                </label>
+                <div class="bg-gray-50 rounded-lg border-2 border-gray-200 p-4">
+                  <input type="text" id="element-domain" readonly class="w-full text-sm bg-transparent text-gray-600 font-medium">
+                </div>
+              </div>
+            </div>
+
+            <!-- Modül Seçimi -->
+            <div class="space-y-2">
+              <label class="flex items-center space-x-2 text-sm font-semibold text-gray-700">
+                <svg class="w-4 h-4 text-gray-500" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 11H5m14 0a2 2 0 012 2v6a2 2 0 01-2 2H5a2 2 0 01-2-2v-6a2 2 0 012-2m14 0V9a2 2 0 00-2-2M5 11V9a2 2 0 012-2m0 0V5a2 2 0 012-2h6a2 2 0 012 2v2M7 7h10"></path>
+                </svg>
+                <span>Modüller (Opsiyonel)</span>
+              </label>
+              <div class="space-y-3">
+                <div class="flex items-center space-x-2">
+                  <select id="module-select" class="flex-1 px-4 py-3 border-2 border-gray-200 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-gray-900 focus:border-gray-900 transition-all bg-white">
+                    <option value="">Modül seçin...</option>
+                  </select>
+                  <button id="add-module-btn" class="inline-flex items-center justify-center space-x-1.5 bg-gray-900 hover:bg-gray-800 text-white font-medium px-4 py-3 rounded-lg transition-all duration-200 shadow-sm hover:shadow-md active:scale-[0.98]">
+                    <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                      <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4v16m8-8H4"></path>
+                    </svg>
+                    <span>Ekle</span>
+                  </button>
+                </div>
+                <div id="selected-modules-list" class="space-y-2">
+                  <!-- Seçilen modüller buraya eklenecek -->
+                </div>
+              </div>
+              <p class="text-xs text-gray-500 mt-1.5 flex items-center space-x-1">
+                <svg class="flex-shrink-0" style="width: 12px; height: 12px;" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"></path>
+                </svg>
+                <span>Kazınan veri seçilen modüllere sırayla gönderilir ve işlenir</span>
+              </p>
+            </div>
+
+            <!-- Not Alanı -->
+            <div class="space-y-2">
+              <label class="flex items-center space-x-2 text-sm font-semibold text-gray-700">
+                <svg class="w-4 h-4 text-gray-500" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z"></path>
+                </svg>
+                <span>Not (Opsiyonel)</span>
+              </label>
+              <textarea id="element-note" rows="3" placeholder="Bu seçici hakkında notlarınızı buraya yazabilirsiniz..." class="w-full px-4 py-3 border-2 border-gray-200 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-gray-900 focus:border-gray-900 transition-all resize-y"></textarea>
+              <p class="text-xs text-gray-500 mt-1.5 flex items-center space-x-1">
+                <svg class="flex-shrink-0" style="width: 12px; height: 12px;" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"></path>
+                </svg>
+                <span>Bu seçiciyi daha sonra hatırlamak için notlar ekleyebilirsiniz</span>
+              </p>
+            </div>
+
+            <!-- Action Buttons -->
+            <div class="flex items-center space-x-3 pt-4 border-t border-gray-200">
+              <button id="test-selector" class="flex-1 inline-flex items-center justify-center space-x-2 font-semibold px-6 py-3 rounded-lg transition-all duration-200 shadow-md hover:shadow-lg active:scale-[0.98]" style="background-color: #2563eb; color: #ffffff;">
+                <svg class="w-5 h-5" fill="none" stroke="#ffffff" viewBox="0 0 24 24">
+                  <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z"></path>
+                </svg>
+                <span>Test Et</span>
+              </button>
+              <button id="save-selector" class="flex-1 inline-flex items-center justify-center space-x-2 bg-gray-900 hover:bg-gray-800 text-white font-semibold px-6 py-3 rounded-lg transition-all duration-200 shadow-md hover:shadow-lg active:scale-[0.98]">
+                <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7"></path>
+                </svg>
+                <span>Seçiciyi Kaydet</span>
+              </button>
+            </div>
+
+            <!-- Test Result -->
+            <div id="test-result" class="hidden test-result"></div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Etiketler Sekmesi -->
+    <div class="tab-content hidden p-6" id="labels-tab">
+      <div class="space-y-6">
+        <div>
+          <h2 class="text-xl font-semibold text-gray-900 mb-2">Etiket Yönetimi</h2>
+          <p class="text-sm text-gray-600 leading-relaxed">
+            Veri toplama için kullanılacak etiketleri buradan oluşturabilir ve yönetebilirsiniz.
+          </p>
+        </div>
+
+        <!-- Yeni Etiket Ekleme Formu -->
+        <div class="bg-white border border-gray-200 rounded-xl p-6">
+          <h3 class="text-lg font-semibold text-gray-900 mb-4">Yeni Etiket Ekle</h3>
+          <div class="space-y-4">
+            <div>
+              <label class="block text-sm font-medium text-gray-700 mb-2">Etiket Adı</label>
+              <input type="text" id="new-label-name" placeholder="Örn: price, title, description" class="w-full px-4 py-3 border-2 border-gray-200 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-gray-900 focus:border-gray-900 transition-all">
+              <p class="text-xs text-gray-500 mt-1.5">Toplanan verilerde kullanılacak alan adı</p>
+            </div>
+            <div>
+              <label class="block text-sm font-medium text-gray-700 mb-2">Etiket Açıklaması</label>
+              <textarea id="new-label-description" rows="3" placeholder="Bu etiketin ne için kullanıldığını açıklayın..." class="w-full px-4 py-3 border-2 border-gray-200 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-gray-900 focus:border-gray-900 transition-all resize-y"></textarea>
+            </div>
+            <button id="add-label-btn" class="w-full inline-flex items-center justify-center space-x-2 bg-gray-900 hover:bg-gray-800 text-white font-semibold px-6 py-3 rounded-lg transition-all duration-200 shadow-md hover:shadow-lg active:scale-[0.98]">
+              <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4v16m8-8H4"></path>
+              </svg>
+              <span>Etiket Ekle</span>
+            </button>
+          </div>
+        </div>
+
+        <!-- Etiket Listesi -->
+        <div>
+          <h3 class="text-lg font-semibold text-gray-900 mb-4">Kayıtlı Etiketler</h3>
+          <div id="labels-list" class="space-y-3">
+            <div class="bg-gray-50 border-2 border-dashed border-gray-300 rounded-lg p-12 text-center">
+              <svg class="w-12 h-12 text-gray-400 mx-auto mb-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M7 7h.01M7 3h5c.512 0 1.024.195 1.414.586l7 7a2 2 0 010 2.828l-7 7a2 2 0 01-2.828 0l-7-7A1.994 1.994 0 013 12V7a4 4 0 014-4z"></path>
+              </svg>
+              <p class="text-sm text-gray-500 mb-1">Henüz etiket eklenmemiş.</p>
+              <p class="text-xs text-gray-400">Yukarıdaki formdan yeni etiket ekleyebilirsiniz.</p>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Kayıtlı Seçiciler Sekmesi -->
+    <div class="tab-content hidden p-6" id="selectors-tab">
+      <div class="space-y-6">
+        <div>
+          <h2 class="text-xl font-semibold text-gray-900 mb-2">Kayıtlı Seçiciler</h2>
+          <p class="text-sm text-gray-600 leading-relaxed">
+            Kaydedilmiş seçicilerinizi buradan görüntüleyebilir, düzenleyebilir veya silebilirsiniz.
+          </p>
+        </div>
+        
+        <!-- Firma Arama -->
+        <div class="bg-white border border-gray-200 rounded-xl p-5">
+          <label class="block text-sm font-semibold text-gray-700 mb-3">
+            <svg class="w-4 h-4 inline mr-2 text-gray-500" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z"></path>
+            </svg>
+            Firma Ara
+          </label>
+          <input 
+            type="text" 
+            id="company-search" 
+            placeholder="Firma adı yazarak arayın (örn: trendyol, hepsiburada, n11)..." 
+            class="w-full px-4 py-3 border-2 border-gray-200 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-gray-900 focus:border-gray-900 transition-all"
+          >
+          <p class="text-xs text-gray-500 mt-2">Seçilen firmanın seçicileri gösterilecektir</p>
+        </div>
+        
+        <div id="selectors-list" class="space-y-3">
+          <div class="bg-gray-50 border-2 border-dashed border-gray-300 rounded-lg p-12 text-center">
+            <svg class="w-12 h-12 text-gray-400 mx-auto mb-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M20 13V6a2 2 0 00-2-2H6a2 2 0 00-2 2v7m16 0v5a2 2 0 01-2 2H6a2 2 0 01-2-2v-5m16 0h-2.586a1 1 0 00-.707.293l-2.414 2.414a1 1 0 01-.707.293h-3.172a1 1 0 01-.707-.293l-2.414-2.414A1 1 0 006.586 13H4"></path>
+            </svg>
+            <p class="text-sm text-gray-500 mb-1">Henüz seçici kaydedilmemiş.</p>
+            <p class="text-xs text-gray-400">Öğe Seç sekmesinden yeni seçici ekleyebilirsiniz.</p>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- URL Tarama Sekmesi -->
+    <div class="tab-content hidden p-6" id="scanner-tab">
+      <div class="space-y-6">
+        <!-- RabbitMQ Listener -->
+        <div class="bg-gradient-to-r from-blue-50 to-indigo-50 border border-blue-200 rounded-xl p-6 space-y-4">
+          <div class="flex items-center justify-between">
+            <div>
+              <h3 class="text-lg font-semibold text-gray-900 mb-1 flex items-center space-x-2">
+                <svg class="w-5 h-5 text-blue-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z"></path>
+                </svg>
+                <span> Otomatik Tarama</span>
+              </h3>
+              <p class="text-sm text-gray-600">
+                RabbitMQ kuyruğundan gelen mesajları otomatik olarak işler ve tarar.
+              </p>
+            </div>
+            <div class="flex items-center space-x-3">
+              <div id="rabbitmq-status" class="flex items-center space-x-2">
+                <div class="w-2 h-2 rounded-full bg-gray-400" id="rabbitmq-status-indicator"></div>
+                <span class="text-sm text-gray-600" id="rabbitmq-status-text">Durduruldu</span>
+              </div>
+              <button id="rabbitmq-start" class="inline-flex items-center space-x-2 bg-blue-600 hover:bg-blue-700 text-white font-medium px-4 py-2 rounded-lg transition-all duration-200 shadow-sm hover:shadow-md active:scale-[0.98]">
+                <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M14.752 11.168l-3.197-2.132A1 1 0 0010 9.87v4.263a1 1 0 001.555.832l3.197-2.132a1 1 0 000-1.664z"></path>
+                  <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M21 12a9 9 0 11-18 0 9 9 0 0118 0z"></path>
+                </svg>
+                <span>Başlat</span>
+              </button>
+              <button id="rabbitmq-stop" class="hidden inline-flex items-center space-x-2 bg-red-600 hover:bg-red-700 text-white font-medium px-4 py-2 rounded-lg transition-all duration-200 shadow-sm hover:shadow-md active:scale-[0.98]">
+                <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M21 12a9 9 0 11-18 0 9 9 0 0118 0z"></path>
+                  <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 10a1 1 0 011-1h4a1 1 0 011 1v4a1 1 0 01-1 1h-4a1 1 0 01-1-1v-4z"></path>
+                </svg>
+                <span>Durdur</span>
+              </button>
+            </div>
+          </div>
+          
+          <div class="bg-white border border-blue-100 rounded-lg p-4 space-y-4">
+            <div class="space-y-3">
+              <div class="flex items-center justify-between text-sm">
+                <span class="text-gray-600">Queue:</span>
+                <span class="font-mono font-semibold text-gray-900">chrome.queue</span>
+              </div>
+              <div class="flex items-center justify-between text-sm">
+                <span class="text-gray-600">Virtual Host:</span>
+                <span class="font-mono font-semibold text-gray-900">chrome</span>
+              </div>
+              <div class="flex items-center justify-between text-sm">
+                <span class="text-gray-600">Kuyruktaki Mesaj:</span>
+                <span class="font-semibold text-gray-900" id="rabbitmq-queue-count">-</span>
+              </div>
+              <div class="flex items-center justify-between text-sm">
+                <span class="text-gray-600">İşlenen Mesaj:</span>
+                <span class="font-semibold text-green-600" id="rabbitmq-processed-count">0</span>
+              </div>
+            </div>
+            
+            <div class="border-t border-blue-100 pt-3">
+              <label for="rabbitmq-parallel-count" class="block text-sm font-medium text-gray-700 mb-2">Paralel İşlem Sayısı</label>
+              <div class="flex items-center space-x-3">
+                <input type="number" id="rabbitmq-parallel-count" value="3" min="1" max="10" class="w-24 px-3 py-2 border border-gray-300 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent">
+                <span class="text-xs text-gray-500">(Önerilen: 3-5)</span>
+              </div>
+              <p class="text-xs text-gray-500 mt-1.5">Aynı anda işlenecek mesaj sayısı</p>
+            </div>
+          </div>
+          
+          <div id="rabbitmq-message" class="status-message hidden"></div>
+        </div>
+
+        <div class="border-t border-gray-200 pt-6">
+          <div>
+            <h2 class="text-xl font-semibold text-gray-900 mb-2">Manuel URL Tarama</h2>
+            <p class="text-sm text-gray-600 leading-relaxed">
+              Birden fazla URL'yi tarayarak veri toplayabilirsiniz. Her satıra bir URL yazın.
+            </p>
+          </div>
+        </div>
+
+        <div class="bg-white border border-gray-200 rounded-lg p-6 space-y-5">
+          <div>
+            <label for="url-list" class="block text-sm font-medium text-gray-700 mb-2">URL Listesi</label>
+            <textarea id="url-list" rows="10" placeholder="https://www.example.com/page1&#10;https://www.example.com/page2&#10;https://www.example.com/page3" class="w-full px-3 py-2.5 border border-gray-300 rounded-lg text-sm font-mono focus:outline-none focus:ring-2 focus:ring-gray-900 focus:border-transparent resize-y"></textarea>
+            <p class="mt-1.5 text-xs text-gray-500">Her satıra bir URL yazın. Boş satırlar göz ardı edilir.</p>
+          </div>
+
+          <div>
+            <label for="parallel-count" class="block text-sm font-medium text-gray-700 mb-2">Paralel İşlem Sayısı</label>
+            <div class="flex items-center space-x-3">
+              <input type="number" id="parallel-count" value="5" min="1" max="20" class="w-24 px-3 py-2.5 border border-gray-300 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-gray-900 focus:border-transparent">
+              <span class="text-xs text-gray-500">(Önerilen: 5-10)</span>
+            </div>
+          </div>
+
+          <div>
+            <label class="flex items-center space-x-2 cursor-pointer">
+              <input type="checkbox" id="capture-screenshot" class="w-4 h-4 text-gray-900 focus:ring-gray-900 rounded">
+              <span class="text-sm text-gray-700">Ekran görüntüsü al</span>
+            </label>
+          </div>
+        </div>
+
+        <div class="flex items-center space-x-3">
+          <button id="start-scan" class="inline-flex items-center space-x-2 bg-gray-900 hover:bg-gray-800 text-white font-medium px-5 py-2.5 rounded-lg transition-all duration-200 shadow-sm hover:shadow-md active:scale-[0.98]">
+            <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M14.752 11.168l-3.197-2.132A1 1 0 0010 9.87v4.263a1 1 0 001.555.832l3.197-2.132a1 1 0 000-1.664z"></path>
+              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M21 12a9 9 0 11-18 0 9 9 0 0118 0z"></path>
+            </svg>
+            <span>Tarama Başlat</span>
+          </button>
+          <button id="stop-scan" class="hidden inline-flex items-center space-x-2 bg-white hover:bg-gray-50 text-gray-700 font-medium px-5 py-2.5 rounded-lg border border-gray-300 transition-all duration-200 active:scale-[0.98]">
+            <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M21 12a9 9 0 11-18 0 9 9 0 0118 0z"></path>
+              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 10a1 1 0 011-1h4a1 1 0 011 1v4a1 1 0 01-1 1h-4a1 1 0 01-1-1v-4z"></path>
+            </svg>
+            <span>Tarama Durdur</span>
+          </button>
+        </div>
+
+        <div id="scan-status" class="status-message hidden"></div>
+        
+        <div id="scan-progress" class="hidden">
+          <div class="w-full bg-gray-200 rounded-full h-2 overflow-hidden">
+            <div id="progress-fill" class="bg-gray-900 h-full transition-all duration-300 rounded-full flex items-center justify-center text-white text-xs"></div>
+          </div>
+        </div>
+
+        <div id="scan-report" class="hidden bg-white border border-gray-200 rounded-lg p-6 space-y-5">
+          <h3 class="text-lg font-semibold text-gray-900">Tarama Raporu</h3>
+          <div class="grid grid-cols-2 md:grid-cols-4 gap-4">
+            <div class="bg-gray-50 border-l-4 border-gray-900 p-4 rounded">
+              <div class="text-xs font-medium text-gray-500 uppercase tracking-wide mb-1">Toplam URL</div>
+              <div id="report-total" class="text-2xl font-bold text-gray-900">0</div>
+            </div>
+            <div class="bg-gray-50 border-l-4 border-gray-900 p-4 rounded">
+              <div class="text-xs font-medium text-gray-500 uppercase tracking-wide mb-1">Başarılı</div>
+              <div id="report-success" class="text-2xl font-bold text-gray-900">0</div>
+            </div>
+            <div class="bg-gray-50 border-l-4 border-gray-900 p-4 rounded">
+              <div class="text-xs font-medium text-gray-500 uppercase tracking-wide mb-1">Başarısız</div>
+              <div id="report-failed" class="text-2xl font-bold text-gray-900">0</div>
+            </div>
+            <div class="bg-gray-50 border-l-4 border-gray-900 p-4 rounded">
+              <div class="text-xs font-medium text-gray-500 uppercase tracking-wide mb-1">İşlenen</div>
+              <div id="report-processed" class="text-2xl font-bold text-gray-900">0</div>
+            </div>
+          </div>
+          <div id="failed-urls" class="hidden bg-red-50 border border-red-200 rounded-lg p-4">
+            <h4 class="text-sm font-semibold text-red-900 mb-3">Başarısız URL'ler</h4>
+            <ul id="failed-urls-list" class="space-y-2"></ul>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Sonuçlar Sekmesi -->
+    <div class="tab-content hidden p-6" id="results-tab">
+      <div class="space-y-6">
+        <div>
+          <h2 class="text-xl font-semibold text-gray-900 mb-2">Toplanan Veriler</h2>
+          <p class="text-sm text-gray-600 leading-relaxed">
+            Tarama sonuçlarınızı buradan görüntüleyebilir ve JSON formatında indirebilirsiniz.
+          </p>
+        </div>
+
+        <div class="flex items-center space-x-3">
+          <button id="export-json" class="inline-flex items-center space-x-2 bg-gray-900 hover:bg-gray-800 text-white font-medium px-5 py-2.5 rounded-lg transition-all duration-200 shadow-sm hover:shadow-md active:scale-[0.98]">
+            <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 10v6m0 0l-3-3m3 3l3-3m2 8H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"></path>
+            </svg>
+            <span>JSON Olarak İndir</span>
+          </button>
+          <button id="clear-results" class="inline-flex items-center space-x-2 bg-white hover:bg-gray-50 text-gray-700 font-medium px-5 py-2.5 rounded-lg border border-gray-300 transition-all duration-200 active:scale-[0.98]">
+            <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16"></path>
+            </svg>
+            <span>Sonuçları Temizle</span>
+          </button>
+        </div>
+
+        <div id="results-list" class="space-y-4">
+          <div class="bg-gray-50 border-2 border-dashed border-gray-300 rounded-lg p-12 text-center">
+            <svg class="w-12 h-12 text-gray-400 mx-auto mb-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"></path>
+            </svg>
+            <p class="text-sm text-gray-500 mb-1">Henüz veri toplanmamış.</p>
+            <p class="text-xs text-gray-400">URL Tarama sekmesinden tarama başlatarak veri toplayabilirsiniz.</p>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+    <!-- Ayarlar Sekmesi -->
+    <div class="tab-content hidden p-6" id="settings-tab">
+      <div class="space-y-6">
+        <div>
+          <h2 class="text-xl font-semibold text-gray-900 mb-2">Ayarlar</h2>
+          <p class="text-sm text-gray-600 leading-relaxed">
+            Eklenti verilerinizi yedekleyebilir, geri yükleyebilir veya temizleyebilirsiniz.
+          </p>
+        </div>
+
+        <!-- API Ayarları -->
+        <div class="bg-white border border-gray-200 rounded-xl p-6 space-y-6">
+          <div>
+            <h3 class="text-lg font-semibold text-gray-900 mb-4 flex items-center space-x-2">
+              <svg class="w-5 h-5 text-gray-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 9l3 3-3 3m5 0h3M5 20h14a2 2 0 002-2V6a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z"></path>
+              </svg>
+              <span>API Ayarları</span>
+            </h3>
+            <p class="text-sm text-gray-600 mb-4">
+              Backend API ile bağlantı kurarak verilerinizi senkronize edin.
+            </p>
+            
+            <div class="space-y-4">
+              <div>
+                <label class="flex items-center space-x-2 cursor-pointer mb-2">
+                  <input type="checkbox" id="test-mode" class="w-4 h-4 text-gray-900 focus:ring-gray-900 rounded">
+                  <span class="text-sm font-medium text-gray-700">Test Modu</span>
+                </label>
+                <p class="text-xs text-gray-500 mt-1.5 ml-6">
+                  Test modu aktifse: <code class="bg-gray-100 px-1 rounded">http://localhost:8082/api</code><br>
+                  Canlı mod: <code class="bg-gray-100 px-1 rounded">http://10.20.50.16/iprice_backend/api/</code>
+                </p>
+              </div>
+              
+              <div>
+                <label class="block text-sm font-medium text-gray-700 mb-2">API Base URL</label>
+                <input type="text" id="api-base-url" placeholder="Otomatik belirlenir" readonly class="w-full px-4 py-3 border-2 border-gray-200 rounded-lg text-sm bg-gray-50 text-gray-600">
+                <p class="text-xs text-gray-500 mt-1.5">Test moduna göre otomatik ayarlanır</p>
+              </div>
+              
+              <div>
+                <label class="block text-sm font-medium text-gray-700 mb-2">API Token</label>
+                <input type="password" id="api-token" placeholder="API token'ınızı girin" class="w-full px-4 py-3 border-2 border-gray-200 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-gray-900 focus:border-gray-900 transition-all">
+                <p class="text-xs text-gray-500 mt-1.5">Backend'den aldığınız API token'ı girin</p>
+              </div>
+              
+              <div class="flex items-center space-x-3">
+                <button id="save-api-settings" class="flex-1 inline-flex items-center justify-center space-x-2 bg-gray-900 hover:bg-gray-800 text-white font-semibold px-6 py-3 rounded-lg transition-all duration-200 shadow-md hover:shadow-lg active:scale-[0.98]">
+                  <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7"></path>
+                  </svg>
+                  <span>Ayarları Kaydet</span>
+                </button>
+                <button id="test-api-connection" class="flex-1 inline-flex items-center justify-center space-x-2 bg-blue-600 hover:bg-blue-700 text-white font-semibold px-6 py-3 rounded-lg transition-all duration-200 shadow-md hover:shadow-lg active:scale-[0.98]">
+                  <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z"></path>
+                  </svg>
+                  <span>Bağlantıyı Test Et</span>
+                </button>
+              </div>
+              
+              <div id="api-status" class="status-message hidden"></div>
+            </div>
+          </div>
+          
+          <div class="border-t border-gray-200 pt-6">
+            <h3 class="text-lg font-semibold text-gray-900 mb-4 flex items-center space-x-2">
+              <svg class="w-5 h-5 text-gray-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15"></path>
+              </svg>
+              <span>Veri Senkronizasyonu</span>
+            </h3>
+            <p class="text-sm text-gray-600 mb-4">
+              Etiketler ve seçicileri backend ile senkronize edin.
+            </p>
+            
+            <div class="space-y-3">
+              <div class="bg-blue-50 border border-blue-200 rounded-lg p-4">
+                <p class="text-sm text-blue-800 mb-3">
+                  <strong>ℹ️ Bilgi:</strong> Veriler artık direkt API'den alınıyor. LocalStorage kullanılmıyor.
+                </p>
+              </div>
+              
+              <div class="grid grid-cols-2 gap-3">
+                <button id="sync-labels-to-api" class="inline-flex items-center justify-center space-x-2 bg-blue-600 hover:bg-blue-700 text-white font-semibold px-4 py-2.5 rounded-lg transition-all duration-200 shadow-sm hover:shadow-md active:scale-[0.98]">
+                  <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15"></path>
+                  </svg>
+                  <span>Etiketleri Yenile</span>
+                </button>
+                
+                <button id="sync-selectors-to-api" class="inline-flex items-center justify-center space-x-2 bg-blue-600 hover:bg-blue-700 text-white font-semibold px-4 py-2.5 rounded-lg transition-all duration-200 shadow-sm hover:shadow-md active:scale-[0.98]">
+                  <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15"></path>
+                  </svg>
+                  <span>Seçicileri Yenile</span>
+                </button>
+              </div>
+              
+              <div class="grid grid-cols-2 gap-3">
+                <button id="fetch-labels-from-api" class="inline-flex items-center justify-center space-x-2 bg-gray-600 hover:bg-gray-700 text-white font-semibold px-4 py-2.5 rounded-lg transition-all duration-200 shadow-sm hover:shadow-md active:scale-[0.98]">
+                  <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15"></path>
+                  </svg>
+                  <span>Etiketleri Yenile</span>
+                </button>
+                
+                <button id="fetch-selectors-from-api" class="inline-flex items-center justify-center space-x-2 bg-gray-600 hover:bg-gray-700 text-white font-semibold px-4 py-2.5 rounded-lg transition-all duration-200 shadow-sm hover:shadow-md active:scale-[0.98]">
+                  <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15"></path>
+                  </svg>
+                  <span>Seçicileri Yenile</span>
+                </button>
+              </div>
+              
+              <div id="sync-status" class="status-message hidden"></div>
+            </div>
+          </div>
+        </div>
+
+        <!-- Yedekleme ve Geri Yükleme -->
+        <div class="bg-white border border-gray-200 rounded-xl p-6 space-y-6">
+          <div>
+            <h3 class="text-lg font-semibold text-gray-900 mb-4 flex items-center space-x-2">
+              <svg class="w-5 h-5 text-gray-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-4l-4 4m0 0l-4-4m4 4V4"></path>
+              </svg>
+              <span>Veri Yedekleme</span>
+            </h3>
+            <p class="text-sm text-gray-600 mb-4">
+              Tüm eklenti verilerinizi (etiketler, seçiciler, tarama sonuçları) JSON formatında yedekleyin.
+            </p>
+            <button id="export-all-data" class="w-full inline-flex items-center justify-center space-x-2 bg-gray-900 hover:bg-gray-800 text-white font-semibold px-6 py-3 rounded-lg transition-all duration-200 shadow-md hover:shadow-lg active:scale-[0.98]">
+              <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 10v6m0 0l-3-3m3 3l3-3m2 8H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"></path>
+              </svg>
+              <span>Tüm Verileri Yedekle</span>
+            </button>
+          </div>
+
+          <div class="border-t border-gray-200 pt-6">
+            <h3 class="text-lg font-semibold text-gray-900 mb-4 flex items-center space-x-2">
+              <svg class="w-5 h-5 text-gray-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-8l-4-4m0 0L8 8m4-4v12"></path>
+              </svg>
+              <span>Veri Geri Yükleme</span>
+            </h3>
+            <p class="text-sm text-gray-600 mb-4">
+              Daha önce yedeklediğiniz JSON dosyasını seçerek verilerinizi geri yükleyin.
+            </p>
+            <div class="space-y-3">
+              <input type="file" id="import-file-input" accept=".json" class="hidden">
+              <button id="import-all-data" class="w-full inline-flex items-center justify-center space-x-2 bg-white hover:bg-gray-50 text-gray-700 font-semibold px-6 py-3 rounded-lg border-2 border-gray-300 transition-all duration-200 active:scale-[0.98]">
+                <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M7 16a4 4 0 01-.88-7.903A5 5 0 1115.9 6L16 6a5 5 0 011 9.9M15 13l-3-3m0 0l-3 3m3-3v12"></path>
+                </svg>
+                <span>Yedekten Geri Yükle</span>
+              </button>
+              <p class="text-xs text-gray-500 text-center">
+                ⚠️ Mevcut veriler üzerine yazılacaktır
+              </p>
+            </div>
+          </div>
+        </div>
+
+        <!-- Veri İstatistikleri -->
+        <div class="bg-white border border-gray-200 rounded-xl p-6">
+          <h3 class="text-lg font-semibold text-gray-900 mb-4 flex items-center space-x-2">
+            <svg class="w-5 h-5 text-gray-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 19v-6a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2a2 2 0 002-2zm0 0V9a2 2 0 012-2h2a2 2 0 012 2v10m-6 0a2 2 0 002 2h2a2 2 0 002-2m0 0V5a2 2 0 012-2h2a2 2 0 012 2v14a2 2 0 01-2 2h-2a2 2 0 01-2-2z"></path>
+            </svg>
+            <span>Veri İstatistikleri</span>
+          </h3>
+          <div id="data-stats" class="grid grid-cols-1 md:grid-cols-3 gap-4">
+            <div class="bg-gray-50 border-l-4 border-gray-900 p-4 rounded">
+              <div class="text-xs font-semibold text-gray-500 uppercase tracking-wide mb-1">Etiketler</div>
+              <div id="stats-labels" class="text-2xl font-bold text-gray-900">0</div>
+            </div>
+            <div class="bg-gray-50 border-l-4 border-gray-900 p-4 rounded">
+              <div class="text-xs font-semibold text-gray-500 uppercase tracking-wide mb-1">Seçiciler</div>
+              <div id="stats-selectors" class="text-2xl font-bold text-gray-900">0</div>
+            </div>
+            <div class="bg-gray-50 border-l-4 border-gray-900 p-4 rounded">
+              <div class="text-xs font-semibold text-gray-500 uppercase tracking-wide mb-1">Tarama Sonuçları</div>
+              <div id="stats-results" class="text-2xl font-bold text-gray-900">0</div>
+            </div>
+          </div>
+        </div>
+
+        <!-- Veri Temizleme -->
+        <div class="bg-red-50 border border-red-200 rounded-xl p-6">
+          <h3 class="text-lg font-semibold text-red-900 mb-4 flex items-center space-x-2">
+            <svg class="w-5 h-5 text-red-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16"></path>
+            </svg>
+            <span>Veri Temizleme</span>
+          </h3>
+          <p class="text-sm text-red-800 mb-4">
+            Tüm eklenti verilerini kalıcı olarak silin. Bu işlem geri alınamaz!
+          </p>
+          <button id="clear-all-data" class="w-full inline-flex items-center justify-center space-x-2 bg-red-600 hover:bg-red-700 text-white font-semibold px-6 py-3 rounded-lg transition-all duration-200 shadow-md hover:shadow-lg active:scale-[0.98]">
+            <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16"></path>
+            </svg>
+            <span>Tüm Verileri Temizle</span>
+          </button>
+        </div>
+      </div>
+    </div>
+
+    <!-- Screenshot Modal -->
+    <div id="screenshot-modal" class="hidden fixed inset-0 z-50 bg-black bg-opacity-90 flex items-center justify-center p-4 cursor-pointer">
+    <span id="screenshot-modal-close" class="absolute top-4 right-4 text-white text-4xl font-bold hover:text-gray-300 transition-colors cursor-pointer">&times;</span>
+    <div class="max-w-5xl max-h-[90vh] overflow-auto">
+      <img id="modal-screenshot-img" src="" alt="Screenshot" class="rounded-lg shadow-2xl">
+    </div>
+  </div>
+
+  <script src="navigation.js"></script>
+  <script src="modules.js"></script>
+  <script src="api-helper.js"></script>
+  <script src="rabbitmq-helper.js"></script>
+  <script src="data-scraper.js"></script>
+</body>
+</html>

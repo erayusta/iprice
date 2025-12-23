@@ -1,0 +1,29 @@
+{
+  "compilerOptions": {
+    "target": "ES2020",
+    "module": "ESNext",
+    "moduleResolution": "bundler",
+    "allowImportingTsExtensions": true,
+    "resolveJsonModule": true,
+    "isolatedModules": true,
+    "noEmit": true,
+    "jsx": "preserve",
+    "strict": false,
+    "noUnusedLocals": false,
+    "noUnusedParameters": false,
+    "exactOptionalPropertyTypes": false,
+    "skipLibCheck": true,
+    "types": ["vue", "@nuxt/types"]
+  },
+  "vueCompilerOptions": {
+    "target": 3.3,
+    "globalTypesPath": "./.nuxt/nuxt.d.ts"
+  },
+  "include": [
+    "**/*",
+    ".nuxt/**/*"
+  ],
+  "exclude": [
+    "node_modules"
+  ]
+}

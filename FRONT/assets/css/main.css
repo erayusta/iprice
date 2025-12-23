@@ -1,0 +1,104 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+@layer base {
+  html {
+    font-family: -apple-system, BlinkMacSystemFont, 'SF Pro Display', 'SF Pro Text', system-ui, sans-serif;
+    -webkit-font-smoothing: antialiased;
+    -moz-osx-font-smoothing: grayscale;
+  }
+  
+  body {
+    @apply bg-background-secondary text-gray-900;
+  }
+}
+
+@layer components {
+  /* Apple Style Buttons */
+  .btn-primary {
+    @apply bg-apple-blue hover:bg-blue-600 text-white font-medium py-3 px-6 rounded-xl transition-all duration-200 shadow-apple hover:shadow-apple-lg active:scale-95;
+  }
+  
+  .btn-secondary {
+    @apply bg-background-primary hover:bg-gray-100 text-gray-900 font-medium py-3 px-6 rounded-xl border border-gray-200 transition-all duration-200 shadow-apple hover:shadow-apple-lg active:scale-95;
+  }
+  
+  .btn-ghost {
+    @apply bg-transparent hover:bg-gray-100 text-gray-700 font-medium py-3 px-6 rounded-xl transition-all duration-200 active:scale-95;
+  }
+  
+  /* Apple Style Inputs */
+  .input-field {
+    @apply w-full px-4 py-3 bg-background-primary border border-gray-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-apple-blue focus:border-transparent transition-all duration-200 text-base;
+  }
+  
+  /* Apple Style Cards */
+  .card {
+    @apply bg-background-primary rounded-2xl shadow-apple p-6 border border-gray-100;
+  }
+  
+  .card-elevated {
+    @apply bg-background-primary rounded-2xl shadow-apple-lg p-6 border border-gray-100;
+  }
+  
+  /* Apple Style Navigation */
+  .nav-item {
+    @apply flex items-center px-4 py-3 text-gray-700 rounded-xl transition-all duration-200 hover:bg-gray-100 active:scale-95;
+  }
+  
+  .nav-item-active {
+    @apply flex items-center px-4 py-3 text-apple-blue bg-blue-50 rounded-xl font-medium;
+  }
+  
+  /* Apple Style Badges */
+  .badge {
+    @apply inline-flex items-center px-3 py-1 rounded-full text-xs font-medium;
+  }
+  
+  .badge-primary {
+    @apply bg-apple-blue text-white;
+  }
+  
+  .badge-success {
+    @apply bg-apple-green text-white;
+  }
+  
+  .badge-warning {
+    @apply bg-apple-orange text-white;
+  }
+  
+  .badge-error {
+    @apply bg-apple-red text-white;
+  }
+  
+  /* Apple Style Dividers */
+  .divider {
+    @apply border-t border-gray-200;
+  }
+  
+  /* Apple Style Glass Effect */
+  .glass {
+    @apply bg-white/80 backdrop-blur-xl border border-white/20;
+  }
+  
+  /* Apple Style Animations */
+  .apple-bounce {
+    animation: apple-bounce 0.6s ease-in-out;
+  }
+  
+  @keyframes apple-bounce {
+    0%, 20%, 53%, 80%, 100% {
+      transform: translate3d(0, 0, 0);
+    }
+    40%, 43% {
+      transform: translate3d(0, -8px, 0);
+    }
+    70% {
+      transform: translate3d(0, -4px, 0);
+    }
+    90% {
+      transform: translate3d(0, -2px, 0);
+    }
+  }
+}

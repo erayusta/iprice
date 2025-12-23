@@ -1,0 +1,42 @@
+<!DOCTYPE html>
+<html lang="tr">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Eklenti Ana Menü</title>
+  <link rel="stylesheet" href="tailwind.css">
+</head>
+<body class="bg-gray-50 min-h-screen">
+  <div class="flex flex-col items-center justify-center min-h-screen px-6 py-12">
+    <div class="w-full max-w-sm space-y-8">
+      <div class="text-center space-y-2">
+        <h1 class="text-3xl font-bold text-gray-900 tracking-tight">Eklenti Modülleri</h1>
+        <p class="text-sm text-gray-500">Web veri toplama araçları</p>
+      </div>
+      
+      <div class="space-y-3">
+        <button id="data-scraper-btn" class="w-full group relative overflow-hidden bg-gray-900 hover:bg-gray-800 text-white font-medium py-6 px-6 rounded-lg transition-all duration-200 shadow-sm hover:shadow-md active:scale-[0.98]">
+          <div class="flex items-center justify-between">
+            <div class="flex items-center space-x-3">
+              <div class="w-10 h-10 rounded-lg bg-white/10 flex items-center justify-center group-hover:bg-white/20 transition-colors">
+                <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 19v-6a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2a2 2 0 002-2zm0 0V9a2 2 0 012-2h2a2 2 0 012 2v10m-6 0a2 2 0 002 2h2a2 2 0 002-2m0 0V5a2 2 0 012-2h2a2 2 0 012 2v14a2 2 0 01-2 2h-2a2 2 0 01-2-2z"></path>
+                </svg>
+              </div>
+              <div class="text-left">
+                <div class="font-semibold">Data Scraper</div>
+                <div class="text-xs text-gray-400 mt-0.5">Web öğelerini seç ve veri topla</div>
+              </div>
+            </div>
+            <svg class="w-5 h-5 text-gray-400 group-hover:text-white group-hover:translate-x-1 transition-all" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5l7 7-7 7"></path>
+            </svg>
+          </div>
+        </button>
+      </div>
+    </div>
+  </div>
+
+  <script src="navigation.js"></script>
+</body>
+</html>

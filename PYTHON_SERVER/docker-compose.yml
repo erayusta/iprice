@@ -1,0 +1,469 @@
+services:
+  app:
+    build:
+      context: .
+      dockerfile: Dockerfile
+    restart: unless-stopped
+    tty: true
+    stdin_open: true
+    shm_size: 1gb
+    ports:
+      - "${APP_PORT:-8000}:8000"
+    volumes:
+      - .:/app
+      - ./screenshots:/app/screenshots
+      - ./data:/app/data
+      - ./logs:/app/logs
+    environment:
+      DATABASE_URL: ${DB_DATABASE}
+      SERVER_PATH: ${SERVER_PATH}
+      SERVER: ${SERVER:-SERVER_AZURE}
+      TZ: Europe/Istanbul
+      DOCKER_PYTHON_SERVICE: http://app:8000
+      # RabbitMQ - AZURE
+      RABBITMQ_HOST_AZURE: ${RABBITMQ_HOST_AZURE:-68.219.209.108}
+      RABBITMQ_PORT_AZURE: ${RABBITMQ_PORT_AZURE:-5672}
+      RABBITMQ_USER_AZURE: ${RABBITMQ_USER_AZURE:-admin}
+      RABBITMQ_PASS_AZURE: ${RABBITMQ_PASS_AZURE:-41jqJ526lOxP}
+      RABBITMQ_VHOST_AZURE: ${RABBITMQ_VHOST_AZURE:-azure}
+      # RabbitMQ - LOCAL
+      RABBITMQ_HOST_LOCAL: ${RABBITMQ_HOST_LOCAL:-10.20.50.16}
+      RABBITMQ_PORT_LOCAL: ${RABBITMQ_PORT_LOCAL:-5672}
+      RABBITMQ_USER_LOCAL: ${RABBITMQ_USER_LOCAL:-admin}
+      RABBITMQ_PASS_LOCAL: ${RABBITMQ_PASS_LOCAL:-admin123}
+      RABBITMQ_VHOST_LOCAL: ${RABBITMQ_VHOST_LOCAL:-chrome}
+    entrypoint: []
+    command: python3 -m uvicorn app.api_main:app --host 0.0.0.0 --port 8000 --reload
+    working_dir: /app
+    networks:
+      - price_analysis_network
+
+  # Redis - GEÇİCİ OLARAK KAPALI (Celery kullanılmıyor)
+  # redis:
+  #   image: redis:alpine
+  #   restart: unless-stopped
+  #   volumes:
+  #     - redis-data:/data
+  #   networks:
+  #     - price_analysis_network
+
+  # CELERY WORKER'LAR - GEÇİCİ OLARAK KAPALI
+  # celery-worker-summary:
+  #   build: .
+  #   restart: unless-stopped
+  #   hostname: summary-worker
+  #   volumes:
+  #     - .:/app
+  #     - ./logs:/app/logs
+  #   environment:
+  #     DATABASE_URL: ${DB_DATABASE}
+  #     SERVER_PATH: ${SERVER_PATH}
+  #     TZ: Europe/Istanbul
+  #     CELERY_BROKER_URL: redis://redis:6379/0
+  #     CELERY_RESULT_BACKEND: redis://redis:6379/0
+  #     PYTHONPATH: /app
+  #   depends_on:
+  #     - redis
+  #     - app
+  #   entrypoint: []
+  #   command: sh -c "cd /app/app && python -m celery -A celery_worker.celery worker --loglevel=info -Q summary -n summary_worker@%h --concurrency=1"
+  #   working_dir: /app/app
+  #   networks:
+  #     - price_analysis_network
+
+  # celery-worker-stock-sync:
+  #   build: .
+  #   restart: unless-stopped
+  #   hostname: stock-sync-worker
+  #   volumes:
+  #     - .:/app
+  #     - ./logs:/app/logs
+  #   environment:
+  #     DATABASE_URL: ${DB_DATABASE}
+  #     SERVER_PATH: ${SERVER_PATH}
+  #     TZ: Europe/Istanbul
+  #     CELERY_BROKER_URL: redis://redis:6379/0
+  #     CELERY_RESULT_BACKEND: redis://redis:6379/0
+  #     PYTHONPATH: /app
+  #   depends_on:
+  #     - redis
+  #     - app
+  #   entrypoint: []
+  #   command: sh -c "cd /app/app && python -m celery -A celery_worker.celery worker --loglevel=info -Q stock_sync -n stock_sync_worker@%h --concurrency=1"
+  #   working_dir: /app/app
+  #   networks:
+  #     - price_analysis_network
+
+  # SCHEDULER - GEÇİCİ OLARAK KAPALI
+  # scheduler:
+  #   build: .
+  #   restart: unless-stopped
+  #   volumes:
+  #     - .:/app
+  #     - ./logs:/app/logs
+  #   environment:
+  #     DATABASE_URL: ${DB_DATABASE}
+  #     SERVER_PATH: ${SERVER_PATH}
+  #     TZ: Europe/Istanbul
+  #     PYTHONPATH: /app
+  #   depends_on:
+  #     - app
+  #   entrypoint: [ ]
+  #   command: python3 /app/app/main.py
+  #   working_dir: /app
+  #   networks:
+  #     - price_analysis_network
+
+  # CELERY BEAT - GEÇİCİ OLARAK KAPALI
+  # celery-beat:
+  #   build: .
+  #   restart: unless-stopped
+  #   volumes:
+  #     - .:/app
+  #     - ./logs:/app/logs
+  #   environment:
+  #     DATABASE_URL: ${DB_DATABASE}
+  #     SERVER_PATH: ${SERVER_PATH}
+  #     TZ: Europe/Istanbul
+  #     CELERY_BROKER_URL: redis://redis:6379/0
+  #     CELERY_RESULT_BACKEND: redis://redis:6379/0
+  #     PYTHONPATH: /app
+  #   depends_on:
+  #     - redis
+  #     - app
+  #   entrypoint: []
+  #   command: python -m celery -A celery_worker.celery beat --loglevel=info
+  #   working_dir: /app/app
+  #   networks:
+  #     - price_analysis_network
+
+  # FLOWER - GEÇİCİ OLARAK KAPALI
+  # flower:
+  #   build: .
+  #   restart: unless-stopped
+  #   ports:
+  #     - "5555:5555"
+  #   volumes:
+  #     - .:/app
+  #   environment:
+  #     DATABASE_URL: ${DB_DATABASE}
+  #     SERVER_PATH: ${SERVER_PATH}
+  #     TZ: Europe/Istanbul
+  #     CELERY_BROKER_URL: redis://redis:6379/0
+  #     CELERY_RESULT_BACKEND: redis://redis:6379/0
+  #     PYTHONPATH: /app
+  #   depends_on:
+  #     - redis
+  #     - celery-worker-summary
+  #     - celery-worker-stock-sync
+  #   entrypoint: []
+  #   command: sh -c "cd /app/app && python -m celery --broker=redis://redis:6379/0 -A celery_worker.celery flower --port=5555 --address=0.0.0.0"
+  #   networks:
+  #     - price_analysis_network
+
+  scrapy-worker:
+    build: .
+    restart: unless-stopped
+    volumes:
+      - .:/app
+      - ./logs:/app/logs
+    environment:
+      DATABASE_URL: ${DB_DATABASE}
+      SERVER_PATH: ${SERVER_PATH}
+      SERVER: ${SERVER:-SERVER_AZURE}
+      TZ: Europe/Istanbul
+      PYTHONPATH: /app
+      SHARED_DB_NAME: ${SHARED_DB_NAME}
+      SHARED_DB_USER: ${SHARED_DB_USER}
+      SHARED_DB_PASS: ${SHARED_DB_PASS}
+      SHARED_DB_HOST: ${SHARED_DB_HOST:-10.20.50.16}
+      SHARED_DB_PORT: ${SHARED_DB_PORT:-5432}
+      # RabbitMQ - AZURE
+      RABBITMQ_HOST_AZURE: ${RABBITMQ_HOST_AZURE:-68.219.209.108}
+      RABBITMQ_PORT_AZURE: ${RABBITMQ_PORT_AZURE:-5672}
+      RABBITMQ_USER_AZURE: ${RABBITMQ_USER_AZURE:-admin}
+      RABBITMQ_PASS_AZURE: ${RABBITMQ_PASS_AZURE:-41jqJ526lOxP}
+      RABBITMQ_VHOST_AZURE: ${RABBITMQ_VHOST_AZURE:-azure}
+      # RabbitMQ - LOCAL
+      RABBITMQ_HOST_LOCAL: ${RABBITMQ_HOST_LOCAL:-10.20.50.16}
+      RABBITMQ_PORT_LOCAL: ${RABBITMQ_PORT_LOCAL:-5672}
+      RABBITMQ_USER_LOCAL: ${RABBITMQ_USER_LOCAL:-admin}
+      RABBITMQ_PASS_LOCAL: ${RABBITMQ_PASS_LOCAL:-admin123}
+      RABBITMQ_VHOST_LOCAL: ${RABBITMQ_VHOST_LOCAL:-chrome}
+      # 🔒 Proxy Ayarları
+      PROXY_ENABLED: ${PROXY_ENABLED:-false}
+      PROXY_TYPE: ${PROXY_TYPE:-none}
+      FREE_PROXY_FILE: ${FREE_PROXY_FILE:-/app/app/proxies}
+      FREE_PROXY_TEST: ${FREE_PROXY_TEST:-false}
+      SMARTPROXY_USER: ${SMARTPROXY_USER:-}
+      SMARTPROXY_PASS: ${SMARTPROXY_PASS:-}
+      SMARTPROXY_ENDPOINT: ${SMARTPROXY_ENDPOINT:-gate.smartproxy.com:7000}
+      SMARTPROXY_COUNTRY: ${SMARTPROXY_COUNTRY:-}
+      SMARTPROXY_SESSION_TYPE: ${SMARTPROXY_SESSION_TYPE:-rotating}
+      # 🔒 Bright Data Proxy Ayarları
+      BRIGHTDATA_USERNAME: ${BRIGHTDATA_USERNAME:-}
+      BRIGHTDATA_PASSWORD: ${BRIGHTDATA_PASSWORD:-}
+      BRIGHTDATA_ENDPOINT: ${BRIGHTDATA_ENDPOINT:-brd.superproxy.io:33335}
+      BRIGHTDATA_COUNTRY: ${BRIGHTDATA_COUNTRY:-TR}
+      BRIGHTDATA_TOKEN: ${BRIGHTDATA_TOKEN:-}
+      CUSTOM_PROXY_URL: ${CUSTOM_PROXY_URL:-}
+      CUSTOM_PROXY_USER: ${CUSTOM_PROXY_USER:-}
+      CUSTOM_PROXY_PASS: ${CUSTOM_PROXY_PASS:-}
+      PROXY_MAX_RETRY: ${PROXY_MAX_RETRY:-3}
+      PROXY_TIMEOUT: ${PROXY_TIMEOUT:-10}
+    depends_on:
+      - app
+    entrypoint: []
+    command: sh -c "cd /app/app && python3 -m workers.scrapy_worker"
+    working_dir: /app/app
+    networks:
+      - price_analysis_network
+    # NOT: deploy.replicas kaldırıldı - komut satırından --scale kullanın
+    # Kaynak limitleri (opsiyonel)
+    mem_limit: 512m
+    cpus: 0.5
+
+  selenium-worker:
+    build: .
+    restart: unless-stopped
+    volumes:
+      - .:/app
+      - ./logs:/app/logs
+    environment:
+      DATABASE_URL: ${DB_DATABASE}
+      SERVER_PATH: ${SERVER_PATH}
+      SERVER: ${SERVER:-SERVER_AZURE}
+      TZ: Europe/Istanbul
+      PYTHONPATH: /app
+      SHARED_DB_NAME: ${SHARED_DB_NAME}
+      SHARED_DB_USER: ${SHARED_DB_USER}
+      SHARED_DB_PASS: ${SHARED_DB_PASS}
+      SHARED_DB_HOST: ${SHARED_DB_HOST:-10.20.50.16}
+      SHARED_DB_PORT: ${SHARED_DB_PORT:-5432}
+      # RabbitMQ - AZURE
+      RABBITMQ_HOST_AZURE: ${RABBITMQ_HOST_AZURE:-68.219.209.108}
+      RABBITMQ_PORT_AZURE: ${RABBITMQ_PORT_AZURE:-5672}
+      RABBITMQ_USER_AZURE: ${RABBITMQ_USER_AZURE:-admin}
+      RABBITMQ_PASS_AZURE: ${RABBITMQ_PASS_AZURE:-41jqJ526lOxP}
+      RABBITMQ_VHOST_AZURE: ${RABBITMQ_VHOST_AZURE:-azure}
+      # RabbitMQ - LOCAL
+      RABBITMQ_HOST_LOCAL: ${RABBITMQ_HOST_LOCAL:-10.20.50.16}
+      RABBITMQ_PORT_LOCAL: ${RABBITMQ_PORT_LOCAL:-5672}
+      RABBITMQ_USER_LOCAL: ${RABBITMQ_USER_LOCAL:-admin}
+      RABBITMQ_PASS_LOCAL: ${RABBITMQ_PASS_LOCAL:-admin123}
+      RABBITMQ_VHOST_LOCAL: ${RABBITMQ_VHOST_LOCAL:-chrome}
+      # 🔒 Proxy Ayarları
+      PROXY_ENABLED: ${PROXY_ENABLED:-false}
+      PROXY_TYPE: ${PROXY_TYPE:-none}
+      FREE_PROXY_FILE: ${FREE_PROXY_FILE:-/app/app/proxies}
+      FREE_PROXY_TEST: ${FREE_PROXY_TEST:-false}
+      SMARTPROXY_USER: ${SMARTPROXY_USER:-}
+      SMARTPROXY_PASS: ${SMARTPROXY_PASS:-}
+      SMARTPROXY_ENDPOINT: ${SMARTPROXY_ENDPOINT:-gate.smartproxy.com:7000}
+      SMARTPROXY_COUNTRY: ${SMARTPROXY_COUNTRY:-}
+      SMARTPROXY_SESSION_TYPE: ${SMARTPROXY_SESSION_TYPE:-rotating}
+      # 🔒 Bright Data Proxy Ayarları
+      BRIGHTDATA_USERNAME: ${BRIGHTDATA_USERNAME:-}
+      BRIGHTDATA_PASSWORD: ${BRIGHTDATA_PASSWORD:-}
+      BRIGHTDATA_ENDPOINT: ${BRIGHTDATA_ENDPOINT:-brd.superproxy.io:33335}
+      BRIGHTDATA_COUNTRY: ${BRIGHTDATA_COUNTRY:-TR}
+      BRIGHTDATA_TOKEN: ${BRIGHTDATA_TOKEN:-}
+      CUSTOM_PROXY_URL: ${CUSTOM_PROXY_URL:-}
+      CUSTOM_PROXY_USER: ${CUSTOM_PROXY_USER:-}
+      CUSTOM_PROXY_PASS: ${CUSTOM_PROXY_PASS:-}
+      PROXY_MAX_RETRY: ${PROXY_MAX_RETRY:-3}
+      PROXY_TIMEOUT: ${PROXY_TIMEOUT:-10}
+    depends_on:
+      - app
+    entrypoint: []
+    command: sh -c "cd /app/app && python3 -m workers.selenium_worker"
+    working_dir: /app/app
+    networks:
+      - price_analysis_network
+    # NOT: deploy.replicas kaldırıldı - komut satırından --scale kullanın
+    # Kaynak limitleri (opsiyonel)
+    mem_limit: 1g
+    cpus: 1.0
+
+  playwright-worker:
+    build: .
+    restart: unless-stopped
+    volumes:
+      - .:/app
+      - ./logs:/app/logs
+    environment:
+      DATABASE_URL: ${DB_DATABASE}
+      SERVER_PATH: ${SERVER_PATH}
+      SERVER: ${SERVER:-SERVER_AZURE}
+      TZ: Europe/Istanbul
+      PYTHONPATH: /app
+      SHARED_DB_NAME: ${SHARED_DB_NAME}
+      SHARED_DB_USER: ${SHARED_DB_USER}
+      SHARED_DB_PASS: ${SHARED_DB_PASS}
+      SHARED_DB_HOST: ${SHARED_DB_HOST:-10.20.50.16}
+      SHARED_DB_PORT: ${SHARED_DB_PORT:-5432}
+      # RabbitMQ - AZURE
+      RABBITMQ_HOST_AZURE: ${RABBITMQ_HOST_AZURE:-68.219.209.108}
+      RABBITMQ_PORT_AZURE: ${RABBITMQ_PORT_AZURE:-5672}
+      RABBITMQ_USER_AZURE: ${RABBITMQ_USER_AZURE:-admin}
+      RABBITMQ_PASS_AZURE: ${RABBITMQ_PASS_AZURE:-41jqJ526lOxP}
+      RABBITMQ_VHOST_AZURE: ${RABBITMQ_VHOST_AZURE:-azure}
+      # RabbitMQ - LOCAL
+      RABBITMQ_HOST_LOCAL: ${RABBITMQ_HOST_LOCAL:-10.20.50.16}
+      RABBITMQ_PORT_LOCAL: ${RABBITMQ_PORT_LOCAL:-5672}
+      RABBITMQ_USER_LOCAL: ${RABBITMQ_USER_LOCAL:-admin}
+      RABBITMQ_PASS_LOCAL: ${RABBITMQ_PASS_LOCAL:-admin123}
+      RABBITMQ_VHOST_LOCAL: ${RABBITMQ_VHOST_LOCAL:-chrome}
+      # 🔒 Proxy Ayarları
+      PROXY_ENABLED: ${PROXY_ENABLED:-false}
+      PROXY_TYPE: ${PROXY_TYPE:-none}
+      FREE_PROXY_FILE: ${FREE_PROXY_FILE:-/app/app/proxies}
+      FREE_PROXY_TEST: ${FREE_PROXY_TEST:-false}
+      SMARTPROXY_USER: ${SMARTPROXY_USER:-}
+      SMARTPROXY_PASS: ${SMARTPROXY_PASS:-}
+      SMARTPROXY_ENDPOINT: ${SMARTPROXY_ENDPOINT:-gate.smartproxy.com:7000}
+      SMARTPROXY_COUNTRY: ${SMARTPROXY_COUNTRY:-}
+      SMARTPROXY_SESSION_TYPE: ${SMARTPROXY_SESSION_TYPE:-rotating}
+      # 🔒 Bright Data Proxy Ayarları
+      BRIGHTDATA_USERNAME: ${BRIGHTDATA_USERNAME:-}
+      BRIGHTDATA_PASSWORD: ${BRIGHTDATA_PASSWORD:-}
+      BRIGHTDATA_ENDPOINT: ${BRIGHTDATA_ENDPOINT:-brd.superproxy.io:33335}
+      BRIGHTDATA_COUNTRY: ${BRIGHTDATA_COUNTRY:-TR}
+      BRIGHTDATA_TOKEN: ${BRIGHTDATA_TOKEN:-}
+      CUSTOM_PROXY_URL: ${CUSTOM_PROXY_URL:-}
+      CUSTOM_PROXY_USER: ${CUSTOM_PROXY_USER:-}
+      CUSTOM_PROXY_PASS: ${CUSTOM_PROXY_PASS:-}
+      PROXY_MAX_RETRY: ${PROXY_MAX_RETRY:-3}
+      PROXY_TIMEOUT: ${PROXY_TIMEOUT:-10}
+    depends_on:
+      - app
+    entrypoint: []
+    command: sh -c "cd /app/app && python3 -m workers.playwright_worker"
+    working_dir: /app/app
+    networks:
+      - price_analysis_network
+    # NOT: deploy.replicas kaldırıldı - komut satırından --scale kullanın
+    # Kaynak limitleri (opsiyonel)
+    mem_limit: 1g
+    cpus: 1.0
+
+  # ✅ YENİ: Save Worker - DB kayıt işlemleri
+  save-worker:
+    build: .
+    restart: unless-stopped
+    volumes:
+      - .:/app
+      - ./logs:/app/logs
+    environment:
+      DATABASE_URL: ${DB_DATABASE}
+      SERVER_PATH: ${SERVER_PATH}
+      SERVER: ${SERVER:-SERVER_AZURE}
+      TZ: Europe/Istanbul
+      PYTHONPATH: /app
+      PYTHONUNBUFFERED: 1  # 🔥 Log buffering'i kapat
+      SHARED_DB_NAME: ${SHARED_DB_NAME}
+      SHARED_DB_USER: ${SHARED_DB_USER}
+      SHARED_DB_PASS: ${SHARED_DB_PASS}
+      SHARED_DB_HOST: ${SHARED_DB_HOST:-10.20.50.16}
+      SHARED_DB_PORT: ${SHARED_DB_PORT:-5432}
+      # RabbitMQ - AZURE
+      RABBITMQ_HOST_AZURE: ${RABBITMQ_HOST_AZURE:-68.219.209.108}
+      RABBITMQ_PORT_AZURE: ${RABBITMQ_PORT_AZURE:-5672}
+      RABBITMQ_USER_AZURE: ${RABBITMQ_USER_AZURE:-admin}
+      RABBITMQ_PASS_AZURE: ${RABBITMQ_PASS_AZURE:-41jqJ526lOxP}
+      RABBITMQ_VHOST_AZURE: ${RABBITMQ_VHOST_AZURE:-azure}
+      # RabbitMQ - LOCAL
+      RABBITMQ_HOST_LOCAL: ${RABBITMQ_HOST_LOCAL:-10.20.50.16}
+      RABBITMQ_PORT_LOCAL: ${RABBITMQ_PORT_LOCAL:-5672}
+      RABBITMQ_USER_LOCAL: ${RABBITMQ_USER_LOCAL:-admin}
+      RABBITMQ_PASS_LOCAL: ${RABBITMQ_PASS_LOCAL:-admin123}
+      RABBITMQ_VHOST_LOCAL: ${RABBITMQ_VHOST_LOCAL:-chrome}
+      # 🔥 RabbitMQ Connection Pool Ayarları
+      RABBITMQ_CONNECTION_POOL_SIZE: ${RABBITMQ_CONNECTION_POOL_SIZE:-50}
+      RABBITMQ_HEARTBEAT: ${RABBITMQ_HEARTBEAT:-60}
+    depends_on:
+      - app
+    entrypoint: []
+    command: sh -c "cd /app/app && python3 -u -m workers.save_worker"  # 🔥 -u flag (unbuffered)
+    working_dir: /app/app
+    networks:
+      - price_analysis_network
+    # NOT: deploy.replicas kaldırıldı - komut satırından --scale kullanın
+    # Kaynak limitleri (opsiyonel)
+    mem_limit: 512m
+    cpus: 0.5
+
+  # ✅ Chrome Completed Queue Worker - Chrome extension'dan gelen mesajları DB'ye kaydeder
+  analiz-db-insert:
+    build: .
+    restart: unless-stopped
+    container_name: analiz-db-insert
+    volumes:
+      - .:/app
+      - ./logs:/app/logs
+    environment:
+      DATABASE_URL: ${DB_DATABASE}
+      SERVER_PATH: ${SERVER_PATH}
+      SERVER: ${SERVER:-SERVER_AZURE}
+      TZ: Europe/Istanbul
+      PYTHONPATH: /app
+      PYTHONUNBUFFERED: 1  # 🔥 Log buffering'i kapat
+      SHARED_DB_NAME: ${SHARED_DB_NAME}
+      SHARED_DB_USER: ${SHARED_DB_USER}
+      SHARED_DB_PASS: ${SHARED_DB_PASS}
+      SHARED_DB_HOST: ${SHARED_DB_HOST:-10.20.50.16}
+      SHARED_DB_PORT: ${SHARED_DB_PORT:-5432}
+      # RabbitMQ - Chrome vhost için özel ayarlar
+      RABBITMQ_HOST_AZURE: ${RABBITMQ_HOST_AZURE:-68.219.209.108}
+      RABBITMQ_PORT_AZURE: ${RABBITMQ_PORT_AZURE:-5672}
+      RABBITMQ_USER_AZURE: ${RABBITMQ_USER_AZURE:-admin}
+      RABBITMQ_PASS_AZURE: ${RABBITMQ_PASS_AZURE:-41jqJ526lOxP}
+      RABBITMQ_VHOST_AZURE: chrome  # 🔥 Chrome extension için chrome vhost (override)
+      # RabbitMQ - LOCAL
+      RABBITMQ_HOST_LOCAL: ${RABBITMQ_HOST_LOCAL:-10.20.50.16}
+      RABBITMQ_PORT_LOCAL: ${RABBITMQ_PORT_LOCAL:-5672}
+      RABBITMQ_USER_LOCAL: ${RABBITMQ_USER_LOCAL:-admin}
+      RABBITMQ_PASS_LOCAL: ${RABBITMQ_PASS_LOCAL:-admin123}
+      RABBITMQ_VHOST_LOCAL: ${RABBITMQ_VHOST_LOCAL:-chrome}
+      # 🔥 RabbitMQ Connection Pool Ayarları
+      RABBITMQ_CONNECTION_POOL_SIZE: ${RABBITMQ_CONNECTION_POOL_SIZE:-50}
+      RABBITMQ_HEARTBEAT: ${RABBITMQ_HEARTBEAT:-60}
+    depends_on:
+      - app
+    entrypoint: []
+    command: sh -c "cd /app/app && python3 -u -m workers.chrome_completed_worker"  # 🔥 -u flag (unbuffered)
+    working_dir: /app/app
+    networks:
+      - price_analysis_network
+    # Kaynak limitleri (opsiyonel)
+    mem_limit: 512m
+    cpus: 0.5
+
+  # LOCAL RABBITMQ - GEÇİCİ OLARAK KAPALI (Remote RabbitMQ kullanılıyor)
+  # rabbitmq:
+  #   image: rabbitmq:3-management
+  #   container_name: shared-rabbitmq
+  #   restart: unless-stopped
+  #   environment:
+  #     RABBITMQ_DEFAULT_USER: ${RABBITMQ_USER:-admin}
+  #     RABBITMQ_DEFAULT_PASS: ${RABBITMQ_PASS:-password123}
+  #   ports:
+  #     - "5672:5672"
+  #     - "15672:15672"
+  #   volumes:
+  #     - rabbitmq_data:/var/lib/rabbitmq
+  #   networks:
+  #     - price_analysis_network
+  #   healthcheck:
+  #     test: [ "CMD", "rabbitmq-diagnostics", "ping" ]
+  #     interval: 30s
+  #     timeout: 10s
+  #     retries: 3
+
+networks:
+    price_analysis_network:
+        driver: bridge
+
+volumes:
+  # redis-data:  # GEÇİCİ OLARAK KAPALI
+  dummy_volume:

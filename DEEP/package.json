@@ -1,0 +1,16 @@
+{
+  "name": "deep",
+  "version": "1.0.0",
+  "description": "Bu Chrome eklentisi, web sayfalarından öğe seçme ve otomatik veri toplama işlemlerini gerçekleştirmenizi sağlar.",
+  "main": "background.js",
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "keywords": [],
+  "author": "",
+  "license": "ISC",
+  "type": "commonjs",
+  "devDependencies": {
+    "tailwindcss": "^4.1.17"
+  }
+}

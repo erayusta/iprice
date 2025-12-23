@@ -1,0 +1,33 @@
+{
+  "manifest_version": 3,
+  "name": "Web Öğe Seçici ve Veri Toplayıcı",
+  "version": "1.0.0",
+  "description": "Web sayfalarından öğe seçme ve otomatik veri toplama eklentisi",
+  "permissions": [
+    "storage",
+    "sidePanel",
+    "tabs",
+    "activeTab",
+    "scripting"
+  ],
+  "host_permissions": [
+    "<all_urls>"
+  ],
+  "background": {
+    "service_worker": "background.js"
+  },
+  "side_panel": {
+    "default_path": "sidepanel/index.html"
+  },
+  "action": {
+    "default_title": "Web Öğe Seçici'yi Aç"
+  },
+  "content_scripts": [
+    {
+      "matches": ["<all_urls>"],
+      "js": ["contentScript.js"],
+      "run_at": "document_idle"
+    }
+  ]
+}
+

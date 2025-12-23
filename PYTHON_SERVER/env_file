@@ -1,0 +1,138 @@
+SERVER=SERVER_AZURE
+#SERVER=SERVER_LOCAL
+
+SCRAPY_WORKERS=1
+SELENIUM_WORKERS=1
+PLAYWRIGHT_WORKERS=1
+SAVE_WORKERS=8
+
+# =============================
+# 🔒 PROXY YÖNETİMİ
+# =============================
+
+# Proxy aktif mi? (Queue'dan gelen use_proxy=true/false bu ayarı override eder)
+PROXY_ENABLED=true
+
+# Default proxy tipi (Queue'dan gelen proxy_type bu ayarı override eder)
+PROXY_TYPE=brightdata
+
+# =============================
+# 🌟 BRIGHT DATA PROXY
+# =============================
+
+# Bright Data Credentials (curl'dan aldığınız bilgiler)
+# NOT: Username'e country eklemeyin, ProxyManager otomatik ekler!
+BRIGHTDATA_USERNAME=brd-customer-hl_76264153-zone-iprice_residential_proxy
+BRIGHTDATA_PASSWORD=j73otkrtdpso
+BRIGHTDATA_ENDPOINT=brd.superproxy.io:33335
+BRIGHTDATA_COUNTRY=TR
+BRIGHTDATA_TOKEN=0ae1b426d883f9655f71bf3e3c07e50bd51743f0234fcaff721ed65c23a18467
+
+# =============================
+# 💎 SMART PROXY
+# =============================
+
+# Smartproxy ayarları (kullanılmıyorsa boş bırakın)
+SMARTPROXY_USER=
+SMARTPROXY_PASS=
+SMARTPROXY_ENDPOINT=gate.smartproxy.com:7000
+SMARTPROXY_COUNTRY=tr
+SMARTPROXY_SESSION_TYPE=rotating
+
+# =============================
+# 🆓 FREE PROXY
+# =============================
+
+# Free proxy ayarları (kullanılmıyorsa boş bırakın)
+FREE_PROXY_FILE=/app/app/proxies
+FREE_PROXY_TEST=false
+
+# =============================
+# 🔧 CUSTOM PROXY
+# =============================
+
+# Custom proxy ayarları (kullanılmıyorsa boş bırakın)
+CUSTOM_PROXY_URL=
+CUSTOM_PROXY_USER=
+CUSTOM_PROXY_PASS=
+
+# =============================
+# ⚙️ PROXY PERFORMANS AYARLARI
+# =============================
+
+# Proxy performans ayarları
+PROXY_MAX_RETRY=3
+PROXY_TIMEOUT=10
+PROXY_TEST_URL=http://httpbin.org/ip
+
+# =============================
+# 🐰 RABBITMQ CONFIGURATION
+# =============================
+
+RABBITMQ_USER=admin
+RABBITMQ_PASS=password123
+RABBITMQ_CONNECTION_POOL_SIZE="50"
+RABBITMQ_HEARTBEAT="60"
+
+# =============================
+# 🗄️ DATABASE CONFIGURATION
+# =============================
+
+# Database - KENDİ BİLGİLERİNİZLE DEĞİŞTİRİN
+DB_DATABASE=postgresql://ipricetestuser:YeniSifre123!@10.20.50.16:5432/ipricetest
+
+# RabbitMQ - AZURE
+RABBITMQ_HOST_AZURE=68.219.209.108
+RABBITMQ_PORT_AZURE=5672
+RABBITMQ_USER_AZURE=admin
+RABBITMQ_PASS_AZURE=41jqJ526lOxP
+RABBITMQ_VHOST_AZURE=azure
+
+# RabbitMQ - LOCAL
+RABBITMQ_HOST_LOCAL=10.20.50.16
+RABBITMQ_PORT_LOCAL=5672
+RABBITMQ_USER_LOCAL=admin
+RABBITMQ_PASS_LOCAL=admin123
+RABBITMQ_VHOST_LOCAL=chrome
+
+# Shared Database - KENDİ BİLGİLERİNİZLE DEĞİŞTİRİN
+SHARED_DB_NAME=ipricetest
+SHARED_DB_USER=ipricetestuser
+SHARED_DB_PASS=YeniSifre123!
+SHARED_DB_HOST=10.20.50.16
+SHARED_DB_PORT=5432
+
+# =============================
+# 🚀 APPLICATION SETTINGS
+# =============================
+
+# Application
+APP_PORT=8000
+WEB_FILE_PATH=./screenshots
+SERVER_PATH=/app
+
+# API URL (Worker'ların proxy alacağı API)
+API_URL=http://app:8000
+
+# =============================
+# 📊 PROXY İSTATİSTİKLERİ
+# =============================
+
+# Minimum Başarı Yüzdesi - Bu değerin altındaki proxyler seçilmez
+PROXY_MIN_WORKING_PERCENT=70
+
+# Failure Threshold - Kaç hatadan sonra proxy devre dışı kalır
+PROXY_FAILURE_THRESHOLD=3
+
+# Default Protokol
+PROXY_DEFAULT_PROTOCOL=http
+
+# =============================
+# 🔍 DEBUGGING
+# =============================
+
+# Proxy debug modu (çok log çıkarır)
+PROXY_DEBUG=false
+
+# Test URL'leri
+PROXY_TEST_URLS=http://httpbin.org/ip,https://api.ipify.org?format=json
