@@ -48,14 +48,20 @@ class RabbitMQHelper {
   async getAPIBaseURL() {
     return new Promise((resolve) => {
       chrome.storage.local.get(['testMode', 'apiBaseURL'], (result) => {
-        // Test modu kontrolü
+        // Önce storage'dan kayıtlı API Base URL'i kontrol et
+        if (result.apiBaseURL && result.apiBaseURL.trim().length > 0) {
+          resolve(result.apiBaseURL.trim());
+          return;
+        }
+        
+        // Eğer storage'da yoksa, test moduna göre varsayılan değerleri kullan
         const isTestMode = result.testMode === true;
         
         if (isTestMode) {
           // Test modu: localhost
           resolve('http://localhost:8082/api');
         } else {
-          // Canlı mod: portal.iprice.com.tr
+          // Canlı mod: varsayılan URL
           resolve('http://10.20.50.16/iprice_backend/api/');
         }
       });
@@ -87,6 +93,16 @@ class RabbitMQHelper {
     return `http://${this.host}:${this.port}/api`;
   }
 
+  // URL birleştirme yardımcı fonksiyonu (çift slash sorununu önler)
+  joinURL(baseURL, endpoint) {
+    // Base URL'in sonundaki slash'ı temizle
+    const cleanBase = baseURL.replace(/\/+$/, '');
+    // Endpoint'in başındaki slash'ı temizle
+    const cleanEndpoint = endpoint.replace(/^\/+/, '');
+    // Birleştir
+    return `${cleanBase}/${cleanEndpoint}`;
+  }
+
   // Yeni API'den pending job al (RabbitMQ yerine)
   // Tüm job item'larını döndürür (count parametresi artık kullanılmıyor)
   async peekMessage(count = 1) {
@@ -95,7 +111,7 @@ class RabbitMQHelper {
       const token = await this.getAPIToken();
       
       // API endpoint
-      let url = `${baseURL}/chrome-extension/next-pending-job`;
+      let url = this.joinURL(baseURL, '/chrome-extension/next-pending-job');
       if (token) {
         url += `?token=${encodeURIComponent(token)}`;
       }
@@ -575,7 +591,7 @@ class RabbitMQHelper {
         return;
       }
       
-      const url = `${baseURL}/chrome-extension/finish-job`;
+      const url = this.joinURL(baseURL, '/chrome-extension/finish-job');
       
       console.log(`Job finish isteği gönderiliyor: ${this.currentJobId}`);
       
@@ -716,7 +732,7 @@ class RabbitMQHelper {
       const baseURL = await this.getAPIBaseURL();
       const token = await this.getAPIToken();
       
-      let url = `${baseURL}/chrome-extension/next-pending-job`;
+      let url = this.joinURL(baseURL, '/chrome-extension/next-pending-job');
       if (token) {
         url += `?token=${encodeURIComponent(token)}`;
       }
@@ -770,7 +786,7 @@ class RabbitMQHelper {
         };
       }
       
-      const url = `${baseURL}/chrome-extension/send-to-queue`;
+      const url = this.joinURL(baseURL, '/chrome-extension/send-to-queue');
       
       console.log('RabbitMQ mesaj gönderiliyor (API üzerinden - helper):', {
         queueName,

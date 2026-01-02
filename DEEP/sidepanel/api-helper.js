@@ -2,6 +2,18 @@
 // Bu dosya backend API ile iletişim için helper fonksiyonları içerir
 
 /**
+ * URL birleştirme yardımcı fonksiyonu (çift slash sorununu önler)
+ */
+function joinURL(baseURL, endpoint) {
+  // Base URL'in sonundaki slash'ı temizle
+  const cleanBase = baseURL.replace(/\/+$/, '');
+  // Endpoint'in başındaki slash'ı temizle
+  const cleanEndpoint = endpoint.replace(/^\/+/, '');
+  // Birleştir
+  return `${cleanBase}/${cleanEndpoint}`;
+}
+
+/**
  * API isteği gönder
  */
 async function apiRequest(endpoint, method = 'POST', data = null) {
@@ -14,7 +26,7 @@ async function apiRequest(endpoint, method = 'POST', data = null) {
       throw new Error('API token bulunamadı. Lütfen ayarlardan token girin.');
     }
     
-    const url = `${baseURL}${endpoint}`;
+    const url = joinURL(baseURL, endpoint);
     
     const options = {
       method: method,
@@ -63,14 +75,20 @@ async function getAPIToken() {
 async function getAPIBaseURL() {
   return new Promise((resolve) => {
     chrome.storage.local.get(['testMode', 'apiBaseURL'], (result) => {
-      // Test modu kontrolü
+      // Önce storage'dan kayıtlı API Base URL'i kontrol et
+      if (result.apiBaseURL && result.apiBaseURL.trim().length > 0) {
+        resolve(result.apiBaseURL.trim());
+        return;
+      }
+      
+      // Eğer storage'da yoksa, test moduna göre varsayılan değerleri kullan
       const isTestMode = result.testMode === true;
       
       if (isTestMode) {
         // Test modu: localhost
         resolve('http://localhost:8082/api');
       } else {
-        // Canlı mod: portal.iprice.com.tr
+        // Canlı mod: varsayılan URL
         resolve('http://10.20.50.16/iprice_backend/api/');
       }
     });
@@ -83,7 +101,7 @@ async function getAPIBaseURL() {
 async function validateToken(token) {
   try {
     const baseURL = await getAPIBaseURL();
-    const url = `${baseURL}/chrome-extension/validate-token`;
+    const url = joinURL(baseURL, '/chrome-extension/validate-token');
     
     const response = await fetch(url, {
       method: 'POST',

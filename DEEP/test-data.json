@@ -1,0 +1,28 @@
+{
+  "data_id": "694bd1991a8964.98796072",
+  "company_id": 53,
+  "product_id": 552,
+  "screenshot": true,
+  "use_proxy": false,
+  "proxy_type": null,
+  "url": "https://www.n11.com/urun/apple-ipad-air-muwr3tua-8-gb-1-tb-wi-fi-11-tablet-57682817",
+  "npm": "MUWR3TU/A",
+  "attributes": [
+    {
+      "company_id": 53,
+      "attributes_id": 15,
+      "attributes_name": "price",
+      "attributes_type": "class",
+      "attributes_value": "{\"selector\":\".newPrice\",\"note\":null,\"modules\":[\"parseTL\"]}"
+    },
+    {
+      "company_id": 53,
+      "attributes_id": 23,
+      "attributes_name": "stock",
+      "attributes_type": "xpath",
+      "attributes_value": "{\"selector\":\"\\/\\/*[@id=\\\"pdp-head-area\\\"]\\/div\\/div[1]\\/div[1]\\/a\\/span\",\"note\":null,\"modules\":[\"checkURLMatch\"]}"
+    }
+  ],
+  "job_id": 453
+}
+

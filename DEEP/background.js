@@ -280,7 +280,10 @@ async function sendToRabbitMQQueue(queueName, messageData) {
       };
     }
     
-    const url = `${apiBaseURL}/chrome-extension/send-to-queue`;
+    // URL birleştirme (çift slash sorununu önler)
+    const cleanBase = apiBaseURL.replace(/\/+$/, '');
+    const cleanEndpoint = '/chrome-extension/send-to-queue'.replace(/^\/+/, '');
+    const url = `${cleanBase}/${cleanEndpoint}`;
     
     console.log('RabbitMQ mesaj gönderiliyor (API üzerinden):', {
       queueName,
@@ -331,14 +334,20 @@ async function sendToRabbitMQQueue(queueName, messageData) {
 async function getAPIBaseURL() {
   return new Promise((resolve) => {
     chrome.storage.local.get(['testMode', 'apiBaseURL'], (result) => {
-      // Test modu kontrolü
+      // Önce storage'dan kayıtlı API Base URL'i kontrol et
+      if (result.apiBaseURL && result.apiBaseURL.trim().length > 0) {
+        resolve(result.apiBaseURL.trim());
+        return;
+      }
+      
+      // Eğer storage'da yoksa, test moduna göre varsayılan değerleri kullan
       const isTestMode = result.testMode === true;
       
       if (isTestMode) {
         // Test modu: localhost
         resolve('http://localhost:8082/api');
       } else {
-        // Canlı mod: portal.iprice.com.tr
+        // Canlı mod: varsayılan URL
         resolve('http://10.20.50.16/iprice_backend/api/');
       }
     });

@@ -1971,7 +1971,7 @@ document.addEventListener('DOMContentLoaded', () => {
   // API ayarlarını yükle
   async function loadAPISettings() {
     try {
-      const result = await chrome.storage.local.get(['apiToken', 'testMode']);
+      const result = await chrome.storage.local.get(['apiToken', 'testMode', 'apiBaseURL']);
       
       // Test modu checkbox'ını ayarla (varsayılan: false - canlı mod)
       const testMode = result.testMode === true;
@@ -1980,8 +1980,17 @@ document.addEventListener('DOMContentLoaded', () => {
         testModeCheckbox.checked = testMode;
       }
       
-      // API Base URL'i güncelle (test moduna göre)
-      await updateAPIBaseURL();
+      // API Base URL'i yükle
+      const apiBaseUrlInput = document.getElementById('api-base-url');
+      if (apiBaseUrlInput) {
+        // Eğer storage'da kayıtlı bir URL varsa onu kullan
+        if (result.apiBaseURL && result.apiBaseURL.trim().length > 0) {
+          apiBaseUrlInput.value = result.apiBaseURL;
+        } else {
+          // Yoksa test moduna göre otomatik ayarla
+          await updateAPIBaseURL();
+        }
+      }
       
       // Token'ı input'a yükle
       const defaultToken = 'iprice_Wi9vtsk56PO4QJAEgBXWROkHjimflqyE';
@@ -2009,10 +2018,20 @@ document.addEventListener('DOMContentLoaded', () => {
     const testMode = document.getElementById('test-mode').checked;
     const apiBaseUrlInput = document.getElementById('api-base-url');
     
-    if (testMode) {
-      apiBaseUrlInput.value = 'http://localhost:8082/api';
-    } else {
-      apiBaseUrlInput.value = 'http://10.20.50.16/iprice_backend/api/';
+    if (!apiBaseUrlInput) return;
+    
+    // Eğer kullanıcı manuel bir URL girmişse, test modu değiştiğinde sadece boşsa veya varsayılan değerlerden biri ise güncelle
+    const currentValue = apiBaseUrlInput.value.trim();
+    const testModeURL = 'http://localhost:8082/api';
+    const liveModeURL = 'http://10.20.50.16/iprice_backend/api/';
+    
+    // Eğer input boşsa veya mevcut değer varsayılan değerlerden biri ise güncelle
+    if (!currentValue || currentValue === testModeURL || currentValue === liveModeURL) {
+      if (testMode) {
+        apiBaseUrlInput.value = testModeURL;
+      } else {
+        apiBaseUrlInput.value = liveModeURL;
+      }
     }
   }
 
@@ -2023,34 +2042,77 @@ document.addEventListener('DOMContentLoaded', () => {
     // Storage'a kaydet
     await chrome.storage.local.set({ testMode: testMode });
     
-    // Base URL'i güncelle
+    // Base URL'i güncelle (sadece boşsa veya varsayılan değerlerden biri ise)
     await updateAPIBaseURL();
+    
+    // Güncellenen URL'i storage'a kaydet
+    const apiBaseUrlInput = document.getElementById('api-base-url');
+    if (apiBaseUrlInput && apiBaseUrlInput.value.trim()) {
+      await chrome.storage.local.set({ apiBaseURL: apiBaseUrlInput.value.trim() });
+    }
   });
+
+  // API Base URL değiştiğinde otomatik kaydet (debounce ile)
+  let apiBaseUrlTimeout = null;
+  const apiBaseUrlInput = document.getElementById('api-base-url');
+  if (apiBaseUrlInput) {
+    apiBaseUrlInput.addEventListener('input', () => {
+      // Önceki timeout'u temizle
+      if (apiBaseUrlTimeout) {
+        clearTimeout(apiBaseUrlTimeout);
+      }
+      
+      // 1 saniye sonra kaydet (kullanıcı yazmayı bitirdikten sonra)
+      apiBaseUrlTimeout = setTimeout(async () => {
+        const baseURL = apiBaseUrlInput.value.trim();
+        if (baseURL) {
+          await chrome.storage.local.set({ apiBaseURL: baseURL });
+        }
+      }, 1000);
+    });
+    
+    // Blur olduğunda hemen kaydet
+    apiBaseUrlInput.addEventListener('blur', async () => {
+      if (apiBaseUrlTimeout) {
+        clearTimeout(apiBaseUrlTimeout);
+      }
+      const baseURL = apiBaseUrlInput.value.trim();
+      if (baseURL) {
+        await chrome.storage.local.set({ apiBaseURL: baseURL });
+      }
+    });
+  }
 
   // API ayarlarını kaydet
   document.getElementById('save-api-settings').addEventListener('click', async () => {
     const tokenInput = document.getElementById('api-token');
+    const apiBaseUrlInput = document.getElementById('api-base-url');
     const token = tokenInput.value.trim();
+    const baseURL = apiBaseUrlInput.value.trim();
     const testMode = document.getElementById('test-mode').checked;
     const apiStatus = document.getElementById('api-status');
     const defaultToken = 'iprice_Wi9vtsk56PO4QJAEgBXWROkHjimflqyE';
 
     // Eğer token boşsa, varsayılan token'ı kullan
     const finalToken = token || defaultToken;
+    
+    // Base URL kontrolü
+    if (!baseURL) {
+      showStatus(apiStatus, 'Lütfen API Base URL girin!', 'error');
+      return;
+    }
 
     try {
       await chrome.storage.local.set({
         apiToken: finalToken,
-        testMode: testMode
+        testMode: testMode,
+        apiBaseURL: baseURL
       });
 
       // Eğer token boşsa, input'a da varsayılan token'ı yaz
       if (!token) {
         tokenInput.value = defaultToken;
       }
-
-      // Base URL'i güncelle
-      await updateAPIBaseURL();
 
       showStatus(apiStatus, 'API ayarları başarıyla kaydedildi!', 'success');
     } catch (error) {
@@ -2075,16 +2137,28 @@ document.addEventListener('DOMContentLoaded', () => {
     try {
       showStatus(apiStatus, 'Bağlantı test ediliyor...', 'info');
 
+      // Base URL'i al (input'tan veya storage'dan)
+      const apiBaseUrlInput = document.getElementById('api-base-url');
+      let baseURL = apiBaseUrlInput.value.trim();
+      
+      // Eğer input boşsa, storage'dan yükle veya test moduna göre ayarla
+      if (!baseURL) {
+        const stored = await chrome.storage.local.get(['apiBaseURL']);
+        if (stored.apiBaseURL && stored.apiBaseURL.trim()) {
+          baseURL = stored.apiBaseURL;
+          apiBaseUrlInput.value = baseURL;
+        } else {
+          await updateAPIBaseURL();
+          baseURL = apiBaseUrlInput.value.trim();
+        }
+      }
+      
       // Token ve test modunu kaydet
       await chrome.storage.local.set({
         apiToken: token,
-        testMode: testMode
+        testMode: testMode,
+        apiBaseURL: baseURL
       });
-
-      // Base URL'i güncelle
-      await updateAPIBaseURL();
-      
-      const baseURL = document.getElementById('api-base-url').value.trim();
 
       // Test connection
       if (typeof window.apiHelper !== 'undefined' && window.apiHelper.testConnection) {
@@ -2096,7 +2170,11 @@ document.addEventListener('DOMContentLoaded', () => {
         }
       } else {
         // Fallback: Direct API call
-        const response = await fetch(`${baseURL}/chrome-extension/test-connection`, {
+        // URL birleştirme (çift slash sorununu önler)
+        const cleanBase = baseURL.replace(/\/+$/, '');
+        const cleanEndpoint = '/chrome-extension/test-connection'.replace(/^\/+/, '');
+        const testURL = `${cleanBase}/${cleanEndpoint}`;
+        const response = await fetch(testURL, {
           method: 'POST',
           headers: {
             'Content-Type': 'application/json',

@@ -545,6 +545,97 @@ const modules = {
         return false;
       }
     }
+  },
+  
+  checkAddToCart: {
+    name: 'checkAddToCart',
+    displayName: 'Sepete Ekle Kontrolü',
+    description: 'Seçilen öğedeki metinde "Sepete Ekle" varsa true, "Stoktaki Mağazalar" veya "Benzer Ürünleri Gör" varsa false döner. Hiçbiri yoksa null döner.',
+    function: function(value) {
+      try {
+        if (!value || typeof value !== 'string') {
+          // Değer yoksa veya string değilse null döndür
+          return null;
+        }
+        
+        // Metni normalize et (küçük harfe çevir, boşlukları temizle)
+        const normalizedValue = String(value).toLowerCase().trim();
+        
+        // "Sepete Ekle" kontrolü
+        const addToCartKeywords = [
+          'sepete ekle',
+          'sepeteekle',
+          'sepet ekle',
+          'add to cart',
+          'addtocart',
+          'add to basket',
+          'sepet'
+        ];
+        
+        // "Stoktaki Mağazalar" kontrolü
+        const stockStoresKeywords = [
+          'stoktaki mağazalar',
+          'stoktakimağazalar',
+          'stoktaki mağaza',
+          'stoktakimağaza',
+          'stok mağazalar',
+          'stokmağazalar',
+          'stoktaki',
+          'mağazalar'
+        ];
+        
+        // "Benzer Ürünleri Gör" kontrolü
+        const similarProductsKeywords = [
+          'benzer ürünleri gör',
+          'benzerürünlerigör',
+          'benzer ürünleri',
+          'benzerürünleri',
+          'benzer ürünler',
+          'benzerürünler',
+          'benzer ürün',
+          'benzerürün',
+          'similar products',
+          'similarproducts',
+          'view similar',
+          'viewsimilar'
+        ];
+        
+        // "Sepete Ekle" içeriyor mu kontrol et
+        const hasAddToCart = addToCartKeywords.some(keyword => normalizedValue.includes(keyword.toLowerCase()));
+        
+        // "Stoktaki Mağazalar" içeriyor mu kontrol et
+        const hasStockStores = stockStoresKeywords.some(keyword => normalizedValue.includes(keyword.toLowerCase()));
+        
+        // "Benzer Ürünleri Gör" içeriyor mu kontrol et
+        const hasSimilarProducts = similarProductsKeywords.some(keyword => normalizedValue.includes(keyword.toLowerCase()));
+        
+        // "Sepete Ekle" varsa true döndür
+        if (hasAddToCart) {
+          console.log('checkAddToCart sonucu:', { value, result: true, reason: 'Sepete Ekle bulundu' });
+          return true;
+        }
+        
+        // "Stoktaki Mağazalar" varsa false döndür
+        if (hasStockStores) {
+          console.log('checkAddToCart sonucu:', { value, result: false, reason: 'Stoktaki Mağazalar bulundu' });
+          return false;
+        }
+        
+        // "Benzer Ürünleri Gör" varsa false döndür
+        if (hasSimilarProducts) {
+          console.log('checkAddToCart sonucu:', { value, result: false, reason: 'Benzer Ürünleri Gör bulundu' });
+          return false;
+        }
+        
+        // Hiçbiri yoksa null döndür (belirsiz durum)
+        console.log('checkAddToCart sonucu:', { value, result: null, reason: 'Ne Sepete Ekle ne de Stoktaki Mağazalar/Benzer Ürünleri Gör bulunamadı' });
+        return null;
+      } catch (error) {
+        console.error('checkAddToCart hatası:', error);
+        // Hata durumunda null döndür
+        return null;
+      }
+    }
   }
 };
 
